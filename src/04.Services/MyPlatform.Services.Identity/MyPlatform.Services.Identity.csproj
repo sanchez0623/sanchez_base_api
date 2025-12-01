@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>MyPlatform.Services.Identity</RootNamespace>
+    <AssemblyName>MyPlatform.Services.Identity</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\02.SDK\MyPlatform.SDK.Authentication\MyPlatform.SDK.Authentication.csproj" />
+    <ProjectReference Include="..\..\02.SDK\MyPlatform.SDK.Authorization\MyPlatform.SDK.Authorization.csproj" />
+    <ProjectReference Include="..\..\02.SDK\MyPlatform.SDK.Caching\MyPlatform.SDK.Caching.csproj" />
+    <ProjectReference Include="..\..\02.SDK\MyPlatform.SDK.EventBus\MyPlatform.SDK.EventBus.csproj" />
+    <ProjectReference Include="..\..\02.SDK\MyPlatform.SDK.MultiTenancy\MyPlatform.SDK.MultiTenancy.csproj" />
+    <ProjectReference Include="..\..\02.SDK\MyPlatform.SDK.Observability\MyPlatform.SDK.Observability.csproj" />
+    <ProjectReference Include="..\..\03.Infrastructure\MyPlatform.Infrastructure.EFCore\MyPlatform.Infrastructure.EFCore.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="$(SwashbuckleVersion)" />
+  </ItemGroup>
+
+</Project>

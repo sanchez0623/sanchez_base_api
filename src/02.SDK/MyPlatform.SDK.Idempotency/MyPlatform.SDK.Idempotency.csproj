@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>MyPlatform.SDK.Idempotency</PackageId>
+    <Description>Idempotency filter, Redis deduplication, result caching, and distributed lock for ensuring exactly-once processing.</Description>
+    <PackageTags>Idempotency;Deduplication;ExactlyOnce;DistributedLock</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MyPlatform.SDK.Core\MyPlatform.SDK.Core.csproj" />
+    <ProjectReference Include="..\..\03.Infrastructure\MyPlatform.Infrastructure.Redis\MyPlatform.Infrastructure.Redis.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.5" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
+  </ItemGroup>
+
+</Project>
