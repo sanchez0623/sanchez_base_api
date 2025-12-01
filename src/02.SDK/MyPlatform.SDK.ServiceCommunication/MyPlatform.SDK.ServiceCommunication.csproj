@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>MyPlatform.SDK.ServiceCommunication</PackageId>
+    <Description>Service-to-service communication with HTTP/gRPC clients, retry policies, and circuit breaker patterns.</Description>
+    <PackageTags>HTTP;gRPC;Polly;Resilience;ServiceCommunication</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MyPlatform.SDK.Core\MyPlatform.SDK.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Grpc.Net.Client" Version="$(GrpcVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="$(MicrosoftExtensionsVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="$(MicrosoftExtensionsVersion)" />
+    <PackageReference Include="Polly" Version="$(PollyVersion)" />
+  </ItemGroup>
+
+</Project>

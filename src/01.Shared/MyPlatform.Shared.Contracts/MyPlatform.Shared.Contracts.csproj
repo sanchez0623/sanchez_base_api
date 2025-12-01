@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>MyPlatform.Shared.Contracts</PackageId>
+    <Description>Cross-service shared DTOs and integration events for microservices communication.</Description>
+    <PackageTags>DTO;Contracts;IntegrationEvents;Shared</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MyPlatform.Shared.Kernel\MyPlatform.Shared.Kernel.csproj" />
+  </ItemGroup>
+
+</Project>

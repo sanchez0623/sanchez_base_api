@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>MyPlatform.SDK.EventBus</PackageId>
+    <Description>Event publish/subscribe, Outbox pattern, and RabbitMQ integration for event-driven microservices.</Description>
+    <PackageTags>EventBus;RabbitMQ;Outbox;Messaging</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MyPlatform.SDK.Core\MyPlatform.SDK.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="$(MicrosoftExtensionsVersion)" />
+    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
+    <PackageReference Include="RabbitMQ.Client" Version="$(RabbitMQClientVersion)" />
+  </ItemGroup>
+
+</Project>

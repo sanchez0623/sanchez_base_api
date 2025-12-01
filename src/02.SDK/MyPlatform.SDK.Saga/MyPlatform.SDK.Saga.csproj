@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>MyPlatform.SDK.Saga</PackageId>
+    <Description>Saga orchestrator, step base class, state persistence, compensation mechanism, and fault recovery for distributed transactions.</Description>
+    <PackageTags>Saga;DistributedTransaction;Compensation;Orchestration</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MyPlatform.SDK.Core\MyPlatform.SDK.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="$(MicrosoftExtensionsVersion)" />
+    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
+  </ItemGroup>
+
+</Project>

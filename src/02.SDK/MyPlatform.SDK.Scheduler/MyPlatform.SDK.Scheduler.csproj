@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>MyPlatform.SDK.Scheduler</PackageId>
+    <Description>Multi-tenant scheduled task support with Quartz.NET integration and task management.</Description>
+    <PackageTags>Scheduler;Quartz;Tasks;Jobs</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MyPlatform.SDK.Core\MyPlatform.SDK.Core.csproj" />
+    <ProjectReference Include="..\MyPlatform.SDK.MultiTenancy\MyPlatform.SDK.MultiTenancy.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Quartz" Version="$(QuartzVersion)" />
+    <PackageReference Include="Quartz.Extensions.DependencyInjection" Version="$(QuartzVersion)" />
+    <PackageReference Include="Quartz.Extensions.Hosting" Version="$(QuartzVersion)" />
+  </ItemGroup>
+
+</Project>
