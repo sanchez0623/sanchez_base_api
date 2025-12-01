@@ -20,6 +20,11 @@ public static class StringExtensions
             return value;
         }
 
+        if (value.Length == 1)
+        {
+            return value.ToLowerInvariant();
+        }
+
         return char.ToLowerInvariant(value[0]) + value[1..];
     }
 
@@ -33,6 +38,11 @@ public static class StringExtensions
         if (string.IsNullOrEmpty(value))
         {
             return value;
+        }
+
+        if (value.Length == 1)
+        {
+            return value.ToUpperInvariant();
         }
 
         return char.ToUpperInvariant(value[0]) + value[1..];
