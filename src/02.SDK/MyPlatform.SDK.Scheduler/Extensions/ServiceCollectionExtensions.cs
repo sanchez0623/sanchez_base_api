@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using MyPlatform.SDK.Scheduler.Configuration;
 using MyPlatform.SDK.Scheduler.Services;
 using Quartz;
@@ -29,7 +30,6 @@ public static class ServiceCollectionExtensions
         services.AddQuartz(q =>
         {
             q.SchedulerName = options.InstanceName;
-            q.UseMicrosoftDependencyInjectionJobFactory();
 
             q.UseDefaultThreadPool(tp =>
             {
@@ -39,9 +39,9 @@ public static class ServiceCollectionExtensions
             configureJobs?.Invoke(q);
         });
 
-        services.AddQuartzHostedService(options =>
+        services.AddQuartzHostedService(opts =>
         {
-            options.WaitForJobsToComplete = true;
+            opts.WaitForJobsToComplete = true;
         });
 
         services.AddSingleton<IJobSchedulerService, QuartzJobSchedulerService>();

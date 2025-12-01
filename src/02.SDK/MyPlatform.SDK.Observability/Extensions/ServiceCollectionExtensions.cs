@@ -99,8 +99,8 @@ public static class ServiceCollectionExtensions
                 .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Information)
                 .MinimumLevel.Override("System", LogEventLevel.Warning)
                 .Enrich.FromLogContext()
-                .Enrich.WithMachineName()
-                .Enrich.WithEnvironmentName();
+                .Enrich.WithProperty("MachineName", Environment.MachineName)
+                .Enrich.WithProperty("Environment", context.HostingEnvironment.EnvironmentName);
 
             if (options.WriteToConsole)
             {

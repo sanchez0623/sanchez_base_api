@@ -3,7 +3,6 @@ using Microsoft.Extensions.DependencyInjection;
 using MyPlatform.Infrastructure.EFCore.Interceptors;
 using MyPlatform.Infrastructure.EFCore.Repositories;
 using MyPlatform.Infrastructure.EFCore.UnitOfWork;
-using MyPlatform.SDK.Authentication.Services;
 using MyPlatform.SDK.MultiTenancy.Services;
 using MyPlatform.Shared.Kernel.Domain;
 using MyPlatform.Shared.Kernel.Repositories;
@@ -21,10 +20,12 @@ public static class ServiceCollectionExtensions
     /// <typeparam name="TContext">The type of DbContext.</typeparam>
     /// <param name="services">The service collection.</param>
     /// <param name="optionsAction">Action to configure DbContext options.</param>
+    /// <param name="getCurrentUserId">Optional function to get current user ID for auditing.</param>
     /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddPlatformEfCore<TContext>(
         this IServiceCollection services,
-        Action<IServiceProvider, DbContextOptionsBuilder> optionsAction)
+        Action<IServiceProvider, DbContextOptionsBuilder> optionsAction,
+        Func<IServiceProvider, string?>? getCurrentUserId = null)
         where TContext : DbContext
     {
         services.AddDbContext<TContext>((sp, options) =>
@@ -32,12 +33,10 @@ public static class ServiceCollectionExtensions
             optionsAction(sp, options);
 
             // Add interceptors
-            var currentUser = sp.GetService<ICurrentUser>();
-            var tenantContext = sp.GetService<ITenantContext>();
-
-            options.AddInterceptors(new AuditableEntityInterceptor(() => currentUser?.UserId));
+            options.AddInterceptors(new AuditableEntityInterceptor(() => getCurrentUserId?.Invoke(sp)));
             options.AddInterceptors(new SoftDeleteInterceptor());
 
+            var tenantContext = sp.GetService<ITenantContext>();
             if (tenantContext is not null)
             {
                 options.AddInterceptors(new TenantInterceptor(tenantContext));
@@ -65,13 +64,13 @@ public static class ServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Registers a repository with a custom implementation.
+    /// Registers a custom repository implementation.
     /// </summary>
     /// <typeparam name="TInterface">The repository interface.</typeparam>
     /// <typeparam name="TImplementation">The repository implementation.</typeparam>
     /// <param name="services">The service collection.</param>
     /// <returns>The service collection for chaining.</returns>
-    public static IServiceCollection AddRepository<TInterface, TImplementation>(this IServiceCollection services)
+    public static IServiceCollection AddCustomRepository<TInterface, TImplementation>(this IServiceCollection services)
         where TInterface : class
         where TImplementation : class, TInterface
     {

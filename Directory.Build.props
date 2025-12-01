@@ -25,9 +25,9 @@
     <MicrosoftExtensionsVersion>9.0.0</MicrosoftExtensionsVersion>
     <AspNetCoreVersion>8.0.11</AspNetCoreVersion>
     <EFCoreVersion>9.0.0</EFCoreVersion>
-    <SerilogVersion>3.1.1</SerilogVersion>
-    <SerilogSinksConsoleVersion>5.0.1</SerilogSinksConsoleVersion>
-    <SerilogSinksFileVersion>5.0.0</SerilogSinksFileVersion>
+    <SerilogVersion>4.2.0</SerilogVersion>
+    <SerilogSinksConsoleVersion>6.0.0</SerilogSinksConsoleVersion>
+    <SerilogSinksFileVersion>6.0.0</SerilogSinksFileVersion>
     <SerilogAspNetCoreVersion>9.0.0</SerilogAspNetCoreVersion>
     <OpenTelemetryVersion>1.10.0</OpenTelemetryVersion>
     <StackExchangeRedisVersion>2.7.10</StackExchangeRedisVersion>
