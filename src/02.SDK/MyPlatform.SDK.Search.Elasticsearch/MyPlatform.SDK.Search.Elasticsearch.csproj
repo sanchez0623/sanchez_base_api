@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>MyPlatform.SDK.Search.Elasticsearch</PackageId>
+    <Description>Elasticsearch SDK providing search services, query builders, index management, and health checks for microservices.</Description>
+    <PackageTags>SDK;Search;Elasticsearch;Query</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MyPlatform.SDK.Core\MyPlatform.SDK.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Elastic.Clients.Elasticsearch" Version="$(ElasticClientsElasticsearchVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="$(MicrosoftExtensionsVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="$(MicrosoftExtensionsVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="$(MicrosoftExtensionsVersion)" />
+  </ItemGroup>
+
+</Project>
