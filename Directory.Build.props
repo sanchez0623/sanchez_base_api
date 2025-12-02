@@ -43,5 +43,6 @@
     <MicrosoftNetTestSdkVersion>17.8.0</MicrosoftNetTestSdkVersion>
     <NewtonsoftJsonVersion>13.0.3</NewtonsoftJsonVersion>
     <MicrosoftIdentityModelTokensVersion>7.2.0</MicrosoftIdentityModelTokensVersion>
+    <ElasticClientsElasticsearchVersion>8.15.6</ElasticClientsElasticsearchVersion>
   </PropertyGroup>
 </Project>

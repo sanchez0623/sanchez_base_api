@@ -22,6 +22,7 @@ SDK Layer (NuGet Packages)
     Caching: Multi-level cache (local MemoryCache + Redis)
     ServiceCommunication: HTTP client factory with Polly retry/circuit breaker
     Observability: Serilog structured logging, OpenTelemetry tracing, Prometheus metrics
+    Search.Elasticsearch: Elasticsearch SDK with query builder, index management, and health checks
 
 Infrastructure
 
@@ -42,6 +43,60 @@ Usage Example
 
     builder.Services.AddPlatformEfCore<AppDbContext>((sp, options) =>
         options.UseNpgsql(connectionString));
+
+Search.Elasticsearch SDK
+
+The Search.Elasticsearch SDK provides a comprehensive Elasticsearch integration for microservices.
+
+Features:
+- Generic search document base class
+- Fluent query builder with chainable API
+- Index management service
+- Health checks for ES cluster
+- Event-driven index sync handlers
+
+Configuration:
+
+    // appsettings.json
+    {
+      "Elasticsearch": {
+        "Nodes": ["http://localhost:9200"],
+        "DefaultIndex": "my_index",
+        "NumberOfShards": 3,
+        "NumberOfReplicas": 1,
+        "RequestTimeout": "00:00:30",
+        "EnableDebugMode": false
+      }
+    }
+
+Registration:
+
+    builder.Services.AddPlatformElasticsearch(builder.Configuration, options =>
+    {
+        options.DefaultIndex = "my_index";
+    });
+    
+    // Register search service for a specific document type
+    builder.Services.AddSearchService<OrderSearchDocument>("order_search");
+    
+    // Add health check
+    builder.Services.AddElasticsearchHealthCheck();
+
+Query Builder Example:
+
+    var query = SearchQueryBuilder<OrderSearchDocument>.Create()
+        .WithTerm(d => d.Status, "paid")
+        .WithMatch(d => d.CustomerName, "张三")
+        .WithRange(d => d.TotalAmount, min: 100, max: 1000)
+        .WithDateRange(d => d.CreatedAt, from: DateTime.Today.AddDays(-7))
+        .WithFullText("iPhone", d => d.ProductNames, d => d.CustomerName)
+        .WithNested("items", n => n.WithTerm("items.brandId", 10))
+        .OrderByDescending(d => d.CreatedAt)
+        .WithPaging(pageIndex: 1, pageSize: 20)
+        .WithHighlight(d => d.CustomerName)
+        .Build();
+    
+    var results = await searchService.SearchAsync(query);
     
 Configuration
     Directory.Build.props: Centralized package version management
