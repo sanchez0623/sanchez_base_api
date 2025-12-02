@@ -64,9 +64,9 @@ public class ElasticsearchService<TDocument> : ISearchService<TDocument>
             });
         }
 
-        // Build highlighting
-        // Build highlighting - skip if no fields specified to avoid API complexity
-        // Highlight can be added using the raw request or custom extensions if needed
+        // Note: Highlight implementation skipped due to Elastic.Clients.Elasticsearch 8.x API complexity.
+        // Highlight fields are collected in the query object but not applied to the search request.
+        // Users needing highlighting can extend this class or use the ElasticsearchClient directly.
 
         var response = await _client.SearchAsync(searchDescriptor, cancellationToken);
 
@@ -266,6 +266,25 @@ public class ElasticsearchService<TDocument> : ISearchService<TDocument>
 
     private static Action<QueryDescriptor<TDocument>> BuildRangeQuery(QueryCondition condition)
     {
+        // Check if it's a date range query
+        if (condition.MinValue is DateTime || condition.MaxValue is DateTime)
+        {
+            return q => q.Range(r => r
+                .DateRange(dr =>
+                {
+                    dr.Field(new Field(condition.Field));
+                    if (condition.MinValue is DateTime minDate)
+                    {
+                        dr.Gte(minDate);
+                    }
+                    if (condition.MaxValue is DateTime maxDate)
+                    {
+                        dr.Lte(maxDate);
+                    }
+                }));
+        }
+
+        // Handle numeric range query
         return q => q.Range(r => r
             .NumberRange(nr =>
             {
