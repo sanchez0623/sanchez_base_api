@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>MyPlatform.Services.Worker</RootNamespace>
+    <AssemblyName>MyPlatform.Services.Worker</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\02.SDK\MyPlatform.SDK.Core\MyPlatform.SDK.Core.csproj" />
+    <ProjectReference Include="..\..\02.SDK\MyPlatform.SDK.Scheduler\MyPlatform.SDK.Scheduler.csproj" />
+    <ProjectReference Include="..\..\02.SDK\MyPlatform.SDK.EventBus\MyPlatform.SDK.EventBus.csproj" />
+    <ProjectReference Include="..\..\02.SDK\MyPlatform.SDK.Caching\MyPlatform.SDK.Caching.csproj" />
+    <ProjectReference Include="..\..\02.SDK\MyPlatform.SDK.MultiTenancy\MyPlatform.SDK.MultiTenancy.csproj" />
+    <ProjectReference Include="..\..\02.SDK\MyPlatform.SDK.Observability\MyPlatform.SDK.Observability.csproj" />
+    <ProjectReference Include="..\..\03.Infrastructure\MyPlatform.Infrastructure.EFCore\MyPlatform.Infrastructure.EFCore.csproj" />
+    <ProjectReference Include="..\..\03.Infrastructure\MyPlatform.Infrastructure.Redis\MyPlatform.Infrastructure.Redis.csproj" />
+  </ItemGroup>
+
+</Project>
