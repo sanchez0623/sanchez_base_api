@@ -1,16 +1,21 @@
+using Microsoft.EntityFrameworkCore;
 using MyPlatform.SDK.Caching.Extensions;
 using MyPlatform.SDK.Core.Extensions;
 using MyPlatform.SDK.EventBus.Extensions;
 using MyPlatform.SDK.MultiTenancy.Extensions;
 using MyPlatform.SDK.Observability.Extensions;
 using MyPlatform.SDK.Scheduler.Extensions;
+using MyPlatform.SDK.Scheduler.Configuration;
 using MyPlatform.Infrastructure.Redis.Extensions;
+using MyPlatform.Services.Worker.Configuration;
+using MyPlatform.Services.Worker.Data;
 using MyPlatform.Services.Worker.Jobs;
+using MyPlatform.Services.Worker.Listeners;
 using MyPlatform.Services.Worker.Services;
 using MyPlatform.Services.Worker.Consumers;
 using Quartz;
 
-var builder = Host.CreateApplicationBuilder(args);
+var builder = WebApplication.CreateBuilder(args);
 
 // ============================================================================
 // 注册底座 SDK 服务
@@ -38,26 +43,172 @@ builder.Services.AddPlatformObservability(builder.Configuration);
 builder.Services.Configure<OutboxOptions>(builder.Configuration.GetSection(OutboxOptions.SectionName));
 
 // ============================================================================
+// 配置数据库上下文（用于任务执行历史）
+// ============================================================================
+
+var workerConnectionString = builder.Configuration.GetConnectionString("WorkerConnection");
+if (!string.IsNullOrEmpty(workerConnectionString))
+{
+    builder.Services.AddDbContext<WorkerDbContext>(options =>
+        options.UseMySql(
+            workerConnectionString,
+            ServerVersion.AutoDetect(workerConnectionString),
+            mysqlOptions => mysqlOptions.EnableRetryOnFailure()));
+}
+else
+{
+    // When no database connection is configured, log a warning and use default connection
+    // In production, the connection string should be properly configured
+    var defaultConnectionString = "Server=localhost;Port=3306;Database=worker;Uid=root;Pwd=;";
+    var startupLogger = LoggerFactory.Create(b => b.AddConsole()).CreateLogger<Program>();
+    startupLogger.LogWarning(
+        "WorkerConnection string not configured. Using default local MySQL connection. " +
+        "Configure 'ConnectionStrings:WorkerConnection' in appsettings.json or environment variables for production use.");
+    
+    builder.Services.AddDbContext<WorkerDbContext>(options =>
+        options.UseMySql(
+            defaultConnectionString,
+            new MySqlServerVersion(new Version(8, 0, 0)),
+            mysqlOptions => mysqlOptions.EnableRetryOnFailure()));
+}
+
+// ============================================================================
+// 配置任务调度选项
+// ============================================================================
+
+builder.Services.Configure<JobScheduleOptions>(
+    builder.Configuration.GetSection(JobScheduleOptions.SectionName));
+
+// ============================================================================
+// 注册任务管理服务
+// ============================================================================
+
+builder.Services.AddScoped<IJobManagementService, JobManagementService>();
+builder.Services.AddScoped<IJobExecutionHistoryService, JobExecutionHistoryService>();
+builder.Services.AddSingleton<JobExecutionHistoryListener>();
+
+// ============================================================================
 // 配置 Quartz.NET 调度器
 // ============================================================================
 
-builder.Services.AddPlatformScheduler(builder.Configuration, q =>
-{
-    // 配置 SampleCleanupJob - 每5分钟执行一次
-    var cleanupJobKey = new JobKey("sample-cleanup-job", "sample-group");
-    q.AddJob<SampleCleanupJob>(opts => opts.WithIdentity(cleanupJobKey));
-    q.AddTrigger(opts => opts
-        .ForJob(cleanupJobKey)
-        .WithIdentity("sample-cleanup-trigger", "sample-group")
-        .WithCronSchedule("0 */5 * * * ?")); // 每5分钟执行
+var schedulerOptions = builder.Configuration
+    .GetSection("Scheduler")
+    .Get<SchedulerOptions>() ?? new SchedulerOptions();
 
-    // 配置 SampleTenantJob - 每10分钟执行一次
-    var tenantJobKey = new JobKey("sample-tenant-job", "sample-group");
-    q.AddJob<SampleTenantJob>(opts => opts.WithIdentity(tenantJobKey));
-    q.AddTrigger(opts => opts
-        .ForJob(tenantJobKey)
-        .WithIdentity("sample-tenant-trigger", "sample-group")
-        .WithCronSchedule("0 */10 * * * ?")); // 每10分钟执行
+var jobScheduleOptions = builder.Configuration
+    .GetSection(JobScheduleOptions.SectionName)
+    .Get<JobScheduleOptions>() ?? new JobScheduleOptions();
+
+builder.Services.AddQuartz(q =>
+{
+    q.SchedulerName = schedulerOptions.InstanceName;
+
+    q.UseDefaultThreadPool(tp =>
+    {
+        tp.MaxConcurrency = schedulerOptions.ThreadCount;
+    });
+
+    // 配置持久化存储（如果启用）
+    var quartzConnectionString = builder.Configuration.GetConnectionString("QuartzConnection");
+    if (schedulerOptions.UsePersistentStore && !string.IsNullOrEmpty(quartzConnectionString))
+    {
+        q.UsePersistentStore(store =>
+        {
+            store.UseProperties = true;
+            store.UseMySql(quartzConnectionString);
+            store.UseClustering();
+#pragma warning disable CS0618 // UseJsonSerializer is deprecated but works for our use case
+            store.UseJsonSerializer();
+#pragma warning restore CS0618
+        });
+    }
+
+    // 注册任务执行历史监听器
+    q.AddJobListener<JobExecutionHistoryListener>();
+
+    // 从配置文件注册任务
+    foreach (var (jobName, jobConfig) in jobScheduleOptions.Jobs)
+    {
+        if (!jobConfig.Enabled)
+        {
+            continue;
+        }
+
+        // 尝试获取任务类型
+        Type? jobType = null;
+        if (!string.IsNullOrEmpty(jobConfig.JobType))
+        {
+            jobType = Type.GetType(jobConfig.JobType);
+        }
+
+        // 如果无法从配置获取类型，尝试匹配已知任务
+        if (jobType == null)
+        {
+            jobType = jobName switch
+            {
+                "SampleCleanupJob" => typeof(SampleCleanupJob),
+                "SampleTenantJob" => typeof(SampleTenantJob),
+                _ => null
+            };
+        }
+
+        if (jobType == null || !typeof(IJob).IsAssignableFrom(jobType))
+        {
+            continue;
+        }
+
+        var jobKey = new JobKey(jobName, jobConfig.Group);
+        var triggerKey = new TriggerKey($"{jobName}-trigger", jobConfig.Group);
+
+        q.AddJob(jobType, jobKey, opts =>
+        {
+            opts.WithDescription(jobConfig.Description);
+            opts.StoreDurably();
+
+            if (jobConfig.JobData != null)
+            {
+                foreach (var (key, value) in jobConfig.JobData)
+                {
+                    opts.UsingJobData(key, value);
+                }
+            }
+        });
+
+        q.AddTrigger(opts => opts
+            .ForJob(jobKey)
+            .WithIdentity(triggerKey)
+            .WithDescription(jobConfig.Description)
+            .WithCronSchedule(jobConfig.CronExpression));
+    }
+});
+
+builder.Services.AddQuartzHostedService(opts =>
+{
+    opts.WaitForJobsToComplete = schedulerOptions.WaitForJobsToComplete;
+});
+
+// ============================================================================
+// 配置 Web API（控制器、Swagger）
+// ============================================================================
+
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Title = "MyPlatform Worker API",
+        Version = "v1",
+        Description = "任务管理 API - 提供动态任务管理、执行历史查询等功能"
+    });
+
+    // 添加 XML 注释
+    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    if (File.Exists(xmlPath))
+    {
+        c.IncludeXmlComments(xmlPath);
+    }
 });
 
 // ============================================================================
@@ -71,18 +222,57 @@ builder.Services.AddHostedService<OutboxProcessorService>();
 builder.Services.AddHostedService<SampleEventConsumer>();
 
 // ============================================================================
-// 构建并启动主机
+// 构建应用
 // ============================================================================
 
-var host = builder.Build();
+var app = builder.Build();
 
 // 记录启动日志
-var logger = host.Services.GetRequiredService<ILogger<Program>>();
+var logger = app.Services.GetRequiredService<ILogger<Program>>();
 var environment = builder.Environment.EnvironmentName;
 logger.LogInformation("=================================================");
 logger.LogInformation("MyPlatform Worker 服务启动");
 logger.LogInformation("环境: {Environment}", environment);
 logger.LogInformation("启动时间: {StartTime:yyyy-MM-dd HH:mm:ss}", DateTime.Now);
+logger.LogInformation("API 端点: http://localhost:5100");
+logger.LogInformation("Swagger UI: http://localhost:5100/swagger");
 logger.LogInformation("=================================================");
 
-await host.RunAsync();
+// ============================================================================
+// 配置中间件管道
+// ============================================================================
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "MyPlatform Worker API v1");
+    });
+}
+
+app.UseRouting();
+app.MapControllers();
+
+// 健康检查端点
+app.MapGet("/health", () => Results.Ok(new { Status = "Healthy", Timestamp = DateTime.UtcNow }));
+
+// ============================================================================
+// 初始化数据库（确保数据库已创建）
+// ============================================================================
+
+using (var scope = app.Services.CreateScope())
+{
+    try
+    {
+        var dbContext = scope.ServiceProvider.GetRequiredService<WorkerDbContext>();
+        await dbContext.Database.EnsureCreatedAsync();
+        logger.LogInformation("Worker 数据库初始化完成");
+    }
+    catch (Exception ex)
+    {
+        logger.LogWarning(ex, "Worker 数据库初始化失败，将使用内存存储");
+    }
+}
+
+await app.RunAsync();
