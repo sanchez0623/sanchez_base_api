@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using MyPlatform.SDK.Saga.Configuration;
 using MyPlatform.SDK.Saga.Persistence;
 
@@ -11,15 +12,32 @@ namespace MyPlatform.SDK.Saga.Extensions;
 public static class ServiceCollectionExtensions
 {
     /// <summary>
-    /// Adds Saga orchestration services to the service collection.
+    /// Adds Saga orchestration services to the service collection with configuration-driven state store selection.
     /// </summary>
     /// <param name="services">The service collection.</param>
     /// <param name="configuration">The configuration.</param>
     /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddPlatformSaga(this IServiceCollection services, IConfiguration configuration)
     {
-        services.Configure<SagaOptions>(configuration.GetSection("Saga"));
-        services.AddSingleton<ISagaStateStore, InMemorySagaStateStore>();
+        var options = configuration.GetSection(SagaOptions.SectionName).Get<SagaOptions>() ?? new SagaOptions();
+
+        services.Configure<SagaOptions>(configuration.GetSection(SagaOptions.SectionName));
+
+        // Register state store based on configuration
+        switch (options.StateStore.ToLowerInvariant())
+        {
+            case "redis":
+                services.AddSingleton<ISagaStateStore, RedisSagaStateStore>();
+                break;
+            case "database":
+            case "efcore":
+                services.AddScoped<ISagaStateStore, EfCoreSagaStateStore>();
+                break;
+            case "inmemory":
+            default:
+                services.AddSingleton<ISagaStateStore, InMemorySagaStateStore>();
+                break;
+        }
 
         return services;
     }
@@ -43,7 +61,7 @@ public static class ServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Adds a custom saga state store implementation.
+    /// Adds a custom saga state store implementation with appropriate lifetime management.
     /// </summary>
     /// <typeparam name="T">The type of saga state store.</typeparam>
     /// <param name="services">The service collection.</param>
@@ -51,7 +69,23 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddSagaStateStore<T>(this IServiceCollection services)
         where T : class, ISagaStateStore
     {
-        services.AddSingleton<ISagaStateStore, T>();
+        // Remove any existing ISagaStateStore registration
+        var descriptor = services.FirstOrDefault(d => d.ServiceType == typeof(ISagaStateStore));
+        if (descriptor != null)
+        {
+            services.Remove(descriptor);
+        }
+
+        // Register with appropriate lifetime based on type
+        if (typeof(T) == typeof(EfCoreSagaStateStore))
+        {
+            services.AddScoped<ISagaStateStore, T>();
+        }
+        else
+        {
+            services.AddSingleton<ISagaStateStore, T>();
+        }
+
         return services;
     }
 
