@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <PackageReference Include="Yarp.ReverseProxy" Version="$(YarpVersion)" />
+    <PackageReference Include="AspNetCore.HealthChecks.Uris" Version="8.0.1" />
   </ItemGroup>
 
 </Project>
