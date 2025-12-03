@@ -29,7 +29,7 @@ builder.Services.AddHttpClient();
 // Add authorization policy
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("default", policy =>
+    options.AddPolicy("authenticated", policy =>
     {
         policy.RequireAuthenticatedUser();
     });
@@ -41,7 +41,7 @@ builder.Services.AddReverseProxy()
     .AddTransforms(transforms =>
     {
         // Request transforms - add tracing and user info headers
-        transforms.AddRequestTransform(async context =>
+        transforms.AddRequestTransform(context =>
         {
             var httpContext = context.HttpContext;
 
@@ -75,11 +75,11 @@ builder.Services.AddReverseProxy()
                 }
             }
 
-            await Task.CompletedTask;
+            return ValueTask.CompletedTask;
         });
 
         // Response transforms - remove sensitive headers and add gateway identifier
-        transforms.AddResponseTransform(async context =>
+        transforms.AddResponseTransform(context =>
         {
             if (context.ProxyResponse != null)
             {
@@ -91,7 +91,7 @@ builder.Services.AddReverseProxy()
                 context.HttpContext.Response.Headers["X-Gateway"] = "MyPlatform.Gateway";
             }
 
-            await Task.CompletedTask;
+            return ValueTask.CompletedTask;
         });
     });
 

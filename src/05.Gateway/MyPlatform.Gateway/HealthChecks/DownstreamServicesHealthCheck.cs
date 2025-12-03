@@ -74,8 +74,16 @@ public class DownstreamServicesHealthCheck : IHealthCheck
 
                 try
                 {
-                    // Try to call the health endpoint
-                    var healthUrl = new Uri(new Uri(address.TrimEnd('/')), "/health");
+                    // Validate and construct health endpoint URL
+                    if (!Uri.TryCreate(address.TrimEnd('/'), UriKind.Absolute, out var baseUri))
+                    {
+                        results[$"{clusterName}/{destinationName}"] = $"Invalid address: {address}";
+                        _logger.LogWarning("Downstream service {Cluster}/{Destination} has invalid address: {Address}", 
+                            clusterName, destinationName, address);
+                        continue;
+                    }
+
+                    var healthUrl = new Uri(baseUri, "/health");
                     var response = await httpClient.GetAsync(healthUrl, cancellationToken);
 
                     if (response.IsSuccessStatusCode)
