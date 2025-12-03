@@ -95,7 +95,13 @@ public class SampleEventConsumer : BackgroundService
         // channel.BasicConsume(queue: "worker.events", autoAck: false, consumer: consumer);
         // ============================================================
 
-        // 模拟消费者运行
+        // ============================================================
+        // 注意：以下为演示代码
+        // 在实际项目中，请使用上述注释中的 RabbitMQ 消费者实现
+        // 替换下面的模拟循环逻辑
+        // ============================================================
+
+        // 模拟消费者运行（仅用于演示）
         while (!stoppingToken.IsCancellationRequested)
         {
             try

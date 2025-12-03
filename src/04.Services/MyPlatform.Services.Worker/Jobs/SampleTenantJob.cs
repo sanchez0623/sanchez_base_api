@@ -83,9 +83,10 @@ public class SampleTenantJob : TenantAwareJob
             // - 生成租户专属的报表
             // ============================================================
 
-            // 模拟业务操作
+            // 模拟业务操作（演示代码：模拟2秒处理时间）
             await Task.Delay(TimeSpan.FromSeconds(2), context.CancellationToken);
 
+            // 演示代码：使用随机数模拟处理记录数，实际项目中应返回真实处理数量
             var processedCount = Random.Shared.Next(50, 200);
 
             _logger.LogInformation(

@@ -197,8 +197,20 @@ public class OutboxProcessorService : BackgroundService
             message.EventType,
             message.TenantId);
 
-        // 这里模拟发布操作
-        // 实际实现中，需要根据 EventType 反序列化 Payload 并调用 IEventPublisher
+        // ============================================================
+        // TODO: 实际项目中的发布逻辑示例:
+        // 
+        // 1. 获取事件类型对应的 Type:
+        //    var eventType = Type.GetType(message.EventType);
+        // 
+        // 2. 反序列化事件对象:
+        //    var @event = JsonSerializer.Deserialize(message.Payload, eventType);
+        // 
+        // 3. 调用事件发布者发布事件:
+        //    await _eventPublisher.PublishAsync(@event, cancellationToken);
+        // ============================================================
+
+        // 此处为演示代码，模拟发布延迟
         await Task.Delay(TimeSpan.FromMilliseconds(100), cancellationToken);
     }
 

@@ -54,9 +54,10 @@ public class SampleCleanupJob : IJob
             // - 清理过期的会话记录
             // ============================================================
 
-            // 模拟清理操作
+            // 模拟清理操作（演示代码：模拟1秒处理时间）
             await Task.Delay(TimeSpan.FromSeconds(1), context.CancellationToken);
 
+            // 演示代码：使用随机数模拟清理记录数，实际项目中应返回真实清理数量
             var cleanedCount = Random.Shared.Next(10, 100);
 
             _logger.LogInformation(
