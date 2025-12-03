@@ -57,11 +57,17 @@ if (!string.IsNullOrEmpty(workerConnectionString))
 }
 else
 {
-    // 当没有配置数据库连接时，仍然注册 DbContext 但使用 MySQL 本地数据库
-    // 这样可以在开发环境中测试，或者在生产环境中必须配置数据库
+    // When no database connection is configured, log a warning and use default connection
+    // In production, the connection string should be properly configured
+    var defaultConnectionString = "Server=localhost;Port=3306;Database=worker;Uid=root;Pwd=;";
+    var startupLogger = LoggerFactory.Create(b => b.AddConsole()).CreateLogger<Program>();
+    startupLogger.LogWarning(
+        "WorkerConnection string not configured. Using default local MySQL connection. " +
+        "Configure 'ConnectionStrings:WorkerConnection' in appsettings.json or environment variables for production use.");
+    
     builder.Services.AddDbContext<WorkerDbContext>(options =>
         options.UseMySql(
-            "Server=localhost;Port=3306;Database=worker;Uid=root;Pwd=root;",
+            defaultConnectionString,
             new MySqlServerVersion(new Version(8, 0, 0)),
             mysqlOptions => mysqlOptions.EnableRetryOnFailure()));
 }
