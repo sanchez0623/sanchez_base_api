@@ -88,7 +88,7 @@ public class RedisSagaStateStore : ISagaStateStore
         foreach (var member in members)
         {
             var state = await GetAsync(member!, cancellationToken);
-            if (state != null && state.Status == status)
+            if (state != null)
             {
                 states.Add(state);
             }
