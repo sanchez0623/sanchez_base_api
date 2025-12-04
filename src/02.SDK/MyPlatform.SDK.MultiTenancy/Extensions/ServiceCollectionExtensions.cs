@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using MyPlatform.SDK.MultiTenancy.Configuration;
+using MyPlatform.SDK.MultiTenancy.Data;
 using MyPlatform.SDK.MultiTenancy.DataSource;
 using MyPlatform.SDK.MultiTenancy.Middleware;
 using MyPlatform.SDK.MultiTenancy.Resolvers;
@@ -60,12 +61,29 @@ public static class ServiceCollectionExtensions
         // Register tenant store based on configuration
         switch (options.TenantStore?.ToLowerInvariant())
         {
+            case "database":
+                // Register tenant management DbContext
+                services.AddDbContext<TenantManagementDbContext>((sp, opt) =>
+                {
+                    var connStr = options.TenantManagementConnectionString;
+                    ConfigureDbContextOptions(opt, connStr, options.DatabaseProvider);
+                });
+                services.AddTenantStore<DatabaseTenantStore>();
+                break;
             case "inmemory":
                 services.AddTenantStore<InMemoryTenantStore>();
                 break;
             case "configuration":
-            default:
                 services.AddTenantStore<ConfigurationTenantStore>();
+                break;
+            default:
+                // Default to Database for production environments
+                services.AddDbContext<TenantManagementDbContext>((sp, opt) =>
+                {
+                    var connStr = options.TenantManagementConnectionString;
+                    ConfigureDbContextOptions(opt, connStr, options.DatabaseProvider);
+                });
+                services.AddTenantStore<DatabaseTenantStore>();
                 break;
         }
 
@@ -181,6 +199,34 @@ public static class ServiceCollectionExtensions
         }
 
         return ActivatorUtilities.CreateInstance(sp, descriptor.ImplementationType!);
+    }
+
+    /// <summary>
+    /// Configures the DbContext options based on the database provider.
+    /// </summary>
+    /// <param name="options">The DbContext options builder.</param>
+    /// <param name="connectionString">The connection string.</param>
+    /// <param name="databaseProvider">The database provider name.</param>
+    private static void ConfigureDbContextOptions(DbContextOptionsBuilder options, string connectionString, string databaseProvider)
+    {
+        switch (databaseProvider?.ToLowerInvariant())
+        {
+            case "mysql":
+                options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+                break;
+            case "postgresql":
+            case "postgres":
+                options.UseNpgsql(connectionString);
+                break;
+            case "sqlserver":
+            case "mssql":
+                options.UseSqlServer(connectionString);
+                break;
+            default:
+                // Default to MySQL
+                options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+                break;
+        }
     }
 }
 

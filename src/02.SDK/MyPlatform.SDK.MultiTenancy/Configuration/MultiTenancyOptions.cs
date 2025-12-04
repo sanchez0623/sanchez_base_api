@@ -19,8 +19,16 @@ public class MultiTenancyOptions
 
     /// <summary>
     /// Gets or sets the default connection string used for shared databases.
+    /// Used when IsolationMode is Shared.
     /// </summary>
     public string DefaultConnectionString { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the connection string for the tenant management database.
+    /// This database stores the tenants table.
+    /// Required when TenantStore is set to "Database".
+    /// </summary>
+    public string TenantManagementConnectionString { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the database provider (e.g., MySQL, SqlServer, PostgreSQL).
@@ -28,9 +36,11 @@ public class MultiTenancyOptions
     public string DatabaseProvider { get; set; } = "MySQL";
 
     /// <summary>
-    /// Gets or sets the tenant store type (e.g., Configuration, InMemory).
+    /// Gets or sets the tenant store type.
+    /// Valid values: Database (production), Configuration (development), InMemory (testing).
+    /// Defaults to Database for production environments.
     /// </summary>
-    public string TenantStore { get; set; } = "Configuration";
+    public string TenantStore { get; set; } = "Database";
 
     /// <summary>
     /// Gets or sets a value indicating whether to cache tenant information.
