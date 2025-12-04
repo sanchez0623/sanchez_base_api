@@ -123,16 +123,40 @@ public class DatabaseTenantStore : ITenantStore
     /// <returns>The mapped TenantInfo object.</returns>
     private static TenantInfo MapToTenantInfo(TenantEntity entity)
     {
+        // Parse isolation mode with fallback to Shared
+        if (!Enum.TryParse<TenantIsolationMode>(entity.IsolationMode, out var isolationMode))
+        {
+            isolationMode = TenantIsolationMode.Shared;
+        }
+
+        // Parse status with fallback to Active
+        if (!Enum.TryParse<TenantStatus>(entity.Status, out var status))
+        {
+            status = TenantStatus.Active;
+        }
+
+        // Parse configuration with fallback to empty dictionary
+        Dictionary<string, string>? configuration = null;
+        if (!string.IsNullOrEmpty(entity.Configuration))
+        {
+            try
+            {
+                configuration = JsonSerializer.Deserialize<Dictionary<string, string>>(entity.Configuration);
+            }
+            catch (JsonException)
+            {
+                // Log or ignore invalid JSON, use empty dictionary
+            }
+        }
+
         return new TenantInfo
         {
             TenantId = entity.TenantId,
             Name = entity.Name,
-            IsolationMode = Enum.Parse<TenantIsolationMode>(entity.IsolationMode),
+            IsolationMode = isolationMode,
             ConnectionString = entity.ConnectionString,
-            Status = Enum.Parse<TenantStatus>(entity.Status),
-            Configuration = string.IsNullOrEmpty(entity.Configuration)
-                ? new Dictionary<string, string>()
-                : JsonSerializer.Deserialize<Dictionary<string, string>>(entity.Configuration) ?? new Dictionary<string, string>(),
+            Status = status,
+            Configuration = configuration ?? new Dictionary<string, string>(),
             CreatedAt = entity.CreatedAt,
             UpdatedAt = entity.UpdatedAt
         };

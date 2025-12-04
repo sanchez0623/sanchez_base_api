@@ -207,8 +207,16 @@ public static class ServiceCollectionExtensions
     /// <param name="options">The DbContext options builder.</param>
     /// <param name="connectionString">The connection string.</param>
     /// <param name="databaseProvider">The database provider name.</param>
+    /// <exception cref="InvalidOperationException">Thrown when the connection string is null or empty.</exception>
     private static void ConfigureDbContextOptions(DbContextOptionsBuilder options, string connectionString, string databaseProvider)
     {
+        if (string.IsNullOrWhiteSpace(connectionString))
+        {
+            throw new InvalidOperationException(
+                "TenantManagementConnectionString is required when TenantStore is set to 'Database'. " +
+                "Please configure 'MultiTenancy:TenantManagementConnectionString' in your configuration.");
+        }
+
         switch (databaseProvider?.ToLowerInvariant())
         {
             case "mysql":
