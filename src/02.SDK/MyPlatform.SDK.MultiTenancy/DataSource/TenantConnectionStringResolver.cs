@@ -47,12 +47,18 @@ public class TenantConnectionStringResolver : ITenantConnectionStringResolver
     /// <inheritdoc />
     public string GetConnectionString(string tenantId)
     {
+        return GetConnectionStringAsync(tenantId).ConfigureAwait(false).GetAwaiter().GetResult();
+    }
+
+    /// <inheritdoc />
+    public async Task<string> GetConnectionStringAsync(string tenantId, CancellationToken cancellationToken = default)
+    {
         if (string.IsNullOrEmpty(tenantId))
         {
             throw new ArgumentException("TenantId cannot be null or empty.", nameof(tenantId));
         }
 
-        var tenant = _tenantStore.GetTenantAsync(tenantId).GetAwaiter().GetResult();
+        var tenant = await _tenantStore.GetTenantAsync(tenantId, cancellationToken).ConfigureAwait(false);
 
         if (tenant == null)
         {

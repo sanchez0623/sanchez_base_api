@@ -126,10 +126,15 @@ public class TenantDbContextFactory<TContext> : ITenantDbContextFactory<TContext
     /// </summary>
     /// <param name="optionsBuilder">The options builder.</param>
     /// <param name="connectionString">The connection string.</param>
+    /// <exception cref="NotImplementedException">Thrown when no database provider is configured.</exception>
     protected virtual void ConfigureDbContext(DbContextOptionsBuilder<TContext> optionsBuilder, string connectionString)
     {
-        // Default implementation - subclasses should override to configure specific providers
+        // Default implementation throws NotImplementedException
+        // Subclasses should override to configure specific providers
         // Example for MySQL: optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
         // Example for SqlServer: optionsBuilder.UseSqlServer(connectionString);
+        throw new NotImplementedException(
+            "No database provider configured. Override ConfigureDbContext method to configure the database provider, " +
+            "or use the constructor that accepts a IDbContextFactory<TContext>.");
     }
 }
