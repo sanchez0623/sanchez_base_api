@@ -1,0 +1,183 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sku-service
+  namespace: myplatform
+  labels:
+    app: sku-service
+    version: v1
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: sku-service
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: sku-service
+        version: v1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "80"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: sku-service
+      containers:
+        - name: sku-service
+          image: myplatform/sku-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+              name: http
+              protocol: TCP
+          env:
+            # 从 Secret 注入敏感配置
+            - name: ConnectionStrings__DefaultConnection
+              valueFrom:
+                secretKeyRef:
+                  name: sku-service-secrets
+                  key: DB_MASTER_CONNECTION
+            - name: Database__ReadWriteSplit__Master__ConnectionString
+              valueFrom:
+                secretKeyRef:
+                  name: sku-service-secrets
+                  key: DB_MASTER_CONNECTION
+            - name: Database__ReadWriteSplit__Replicas__0__ConnectionString
+              valueFrom:
+                secretKeyRef:
+                  name: sku-service-secrets
+                  key: DB_REPLICA1_CONNECTION
+            - name: Database__ReadWriteSplit__Replicas__1__ConnectionString
+              valueFrom:
+                secretKeyRef:
+                  name: sku-service-secrets
+                  key: DB_REPLICA2_CONNECTION
+            - name: Jwt__SecretKey
+              valueFrom:
+                secretKeyRef:
+                  name: sku-service-secrets
+                  key: JWT_SECRET_KEY
+            - name: Jwt__Issuer
+              valueFrom:
+                secretKeyRef:
+                  name: sku-service-secrets
+                  key: JWT_ISSUER
+            - name: Jwt__Audience
+              valueFrom:
+                secretKeyRef:
+                  name: sku-service-secrets
+                  key: JWT_AUDIENCE
+            # 环境变量
+            - name: ASPNETCORE_ENVIRONMENT
+              value: "Production"
+            - name: ASPNETCORE_URLS
+              value: "http://+:80"
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          # 健康检查
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 30
+          volumeMounts:
+            - name: config-volume
+              mountPath: /app/appsettings.Production.json
+              subPath: appsettings.Production.json
+              readOnly: true
+      volumes:
+        - name: config-volume
+          configMap:
+            name: sku-service-config
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - sku-service
+                topologyKey: kubernetes.io/hostname
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sku-service
+  namespace: myplatform
+  labels:
+    app: sku-service
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+      name: http
+  selector:
+    app: sku-service
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: sku-service
+  namespace: myplatform
+  labels:
+    app: sku-service
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: sku-service
+  namespace: myplatform
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: sku-service
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
