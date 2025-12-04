@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using MyPlatform.Infrastructure.EFCore.Interceptors;
+using MyPlatform.Infrastructure.EFCore.ReadWriteSplit;
 using MyPlatform.Infrastructure.EFCore.Repositories;
 using MyPlatform.Infrastructure.EFCore.UnitOfWork;
 using MyPlatform.SDK.MultiTenancy.Services;
@@ -31,6 +33,14 @@ public static class ServiceCollectionExtensions
         services.AddDbContext<TContext>((sp, options) =>
         {
             optionsAction(sp, options);
+
+            // Add read-write split interceptor if enabled
+            var readWriteOptions = sp.GetService<IOptions<ReadWriteOptions>>()?.Value;
+            if (readWriteOptions?.Enabled == true)
+            {
+                var resolver = sp.GetRequiredService<IConnectionStringResolver>();
+                options.AddInterceptors(new ReadWriteDbCommandInterceptor(resolver));
+            }
 
             // Add interceptors
             options.AddInterceptors(new AuditableEntityInterceptor(() => getCurrentUserId?.Invoke(sp)));
