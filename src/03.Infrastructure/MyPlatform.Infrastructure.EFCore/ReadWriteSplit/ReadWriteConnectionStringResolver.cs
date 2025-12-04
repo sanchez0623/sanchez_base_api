@@ -10,7 +10,7 @@ public class ReadWriteConnectionStringResolver : IConnectionStringResolver
 {
     private readonly ReadWriteOptions _options;
     private readonly List<ReplicaInfo> _enabledReplicas;
-    private readonly Random _random = new();
+    private static readonly ThreadLocal<Random> _threadLocalRandom = new(() => new Random(Guid.NewGuid().GetHashCode()));
     private int _roundRobinIndex = -1;
     private int _weightedIndex = 0;
     private int _weightedCurrentWeight = 0;
@@ -93,7 +93,8 @@ public class ReadWriteConnectionStringResolver : IConnectionStringResolver
     /// </summary>
     private ReplicaInfo SelectRandom()
     {
-        var index = _random.Next(_enabledReplicas.Count);
+        var random = _threadLocalRandom.Value!;
+        var index = random.Next(_enabledReplicas.Count);
         return _enabledReplicas[index];
     }
 
@@ -104,8 +105,12 @@ public class ReadWriteConnectionStringResolver : IConnectionStringResolver
     {
         lock (_lockObject)
         {
-            while (true)
+            var maxIterations = _enabledReplicas.Count * GetMaxWeight() + 1;
+            var iterations = 0;
+
+            while (iterations < maxIterations)
             {
+                iterations++;
                 _weightedIndex = (_weightedIndex + 1) % _enabledReplicas.Count;
 
                 if (_weightedIndex == 0)
@@ -126,6 +131,9 @@ public class ReadWriteConnectionStringResolver : IConnectionStringResolver
                     return _enabledReplicas[_weightedIndex];
                 }
             }
+
+            // Safety fallback: return first replica if algorithm fails
+            return _enabledReplicas[0];
         }
     }
 

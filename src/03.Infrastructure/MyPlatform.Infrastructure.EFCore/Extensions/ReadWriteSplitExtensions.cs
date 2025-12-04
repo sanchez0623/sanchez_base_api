@@ -47,10 +47,18 @@ public static class ReadWriteSplitExtensions
     /// <summary>
     /// Forces the query to use the master database.
     /// This is useful when you need to read data that was just written.
+    /// <para>
+    /// <b>Warning:</b> This sets the ForceMaster flag until explicitly reset.
+    /// Consider using <see cref="WithMaster{T}"/> or <see cref="WithMasterAsync{T}"/> 
+    /// for automatic cleanup.
+    /// </para>
     /// </summary>
     /// <typeparam name="T">The entity type.</typeparam>
     /// <param name="query">The query to modify.</param>
     /// <returns>The same query (force master is applied via async local context).</returns>
+    /// <remarks>
+    /// Call <see cref="ResetForceMaster"/> after executing the query to reset the flag.
+    /// </remarks>
     public static IQueryable<T> UseMaster<T>(this IQueryable<T> query) where T : class
     {
         ReadWriteDbCommandInterceptor.ForceMaster = true;

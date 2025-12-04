@@ -67,7 +67,7 @@ public class DateTimeShardingRoute<TEntity> : IShardingRouteRule<TEntity> where 
             yield break;
         }
 
-        var start = startTime ?? DateTime.UtcNow.AddYears(-1);
+        var start = startTime ?? DateTime.UtcNow.AddMonths(-_options.DefaultLookBackMonths);
         var end = endTime ?? DateTime.UtcNow;
 
         var current = start;

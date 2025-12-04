@@ -86,7 +86,7 @@ public class ModShardingRoute<TEntity> : IShardingRouteRule<TEntity> where TEnti
             uint ui => ui,
             ushort us => us,
             string str when long.TryParse(str, out var parsed) => parsed,
-            Guid guid => BitConverter.ToInt64(guid.ToByteArray(), 0),
+            Guid guid => (long)guid.GetHashCode(),
             _ => null
         };
     }

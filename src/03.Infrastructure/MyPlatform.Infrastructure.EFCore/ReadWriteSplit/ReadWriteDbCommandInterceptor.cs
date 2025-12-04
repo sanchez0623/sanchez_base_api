@@ -152,6 +152,12 @@ public class ReadWriteDbCommandInterceptor : DbCommandInterceptor
     /// Sets the connection to use the master database.
     /// </summary>
     /// <param name="command">The database command.</param>
+    /// <remarks>
+    /// If the connection is already open, the connection string cannot be changed.
+    /// In this case, the command will continue to use the existing connection.
+    /// For proper read-write split in all scenarios, ensure connections are obtained
+    /// from the correct connection pool before being opened.
+    /// </remarks>
     private void SetMasterConnection(DbCommand command)
     {
         var masterConnectionString = _resolver.GetWriteConnectionString();
@@ -161,8 +167,9 @@ public class ReadWriteDbCommandInterceptor : DbCommandInterceptor
         {
             if (command.Connection.State == System.Data.ConnectionState.Open)
             {
-                // Connection is already open, cannot change connection string
-                // This scenario requires connection pooling management
+                // Connection is already open, cannot change connection string.
+                // The command will execute on the current connection.
+                // This is expected behavior when using EF Core's connection management.
                 return;
             }
             command.Connection.ConnectionString = masterConnectionString;
@@ -173,6 +180,10 @@ public class ReadWriteDbCommandInterceptor : DbCommandInterceptor
     /// Sets the connection to use a replica database.
     /// </summary>
     /// <param name="command">The database command.</param>
+    /// <remarks>
+    /// If the connection is already open, the connection string cannot be changed.
+    /// In this case, the command will continue to use the existing connection.
+    /// </remarks>
     private void SetReplicaConnection(DbCommand command)
     {
         if (_resolver.ShouldUseMaster())
@@ -188,7 +199,8 @@ public class ReadWriteDbCommandInterceptor : DbCommandInterceptor
         {
             if (command.Connection.State == System.Data.ConnectionState.Open)
             {
-                // Connection is already open, cannot change connection string
+                // Connection is already open, cannot change connection string.
+                // The command will execute on the current connection.
                 return;
             }
             command.Connection.ConnectionString = replicaConnectionString;
