@@ -7,7 +7,7 @@
 -- database provider (PostgreSQL, SQL Server, etc.) and specific requirements.
 --
 -- Usage:
---   mysql -u root -p your_database < CreateTenantsTable.sql
+--   mysql -u root -p tenant_management_db < CreateTenantsTable.sql
 -- =============================================================================
 
 CREATE TABLE IF NOT EXISTS `tenants` (

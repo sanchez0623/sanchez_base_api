@@ -140,13 +140,24 @@ public class MySqlTenantStore : ITenantStore
     /// <returns>The mapped TenantInfo.</returns>
     private static TenantInfo MapToTenantInfo(TenantEntity entity)
     {
+        // Use TryParse with fallback to default values for robustness
+        if (!Enum.TryParse<TenantIsolationMode>(entity.IsolationMode, out var isolationMode))
+        {
+            isolationMode = TenantIsolationMode.Shared;
+        }
+
+        if (!Enum.TryParse<TenantStatus>(entity.Status, out var status))
+        {
+            status = TenantStatus.Active;
+        }
+
         return new TenantInfo
         {
             TenantId = entity.TenantId,
             Name = entity.Name,
-            IsolationMode = Enum.Parse<TenantIsolationMode>(entity.IsolationMode),
+            IsolationMode = isolationMode,
             ConnectionString = entity.ConnectionString,
-            Status = Enum.Parse<TenantStatus>(entity.Status),
+            Status = status,
             Configuration = string.IsNullOrEmpty(entity.Configuration)
                 ? new Dictionary<string, string>()
                 : JsonSerializer.Deserialize<Dictionary<string, string>>(entity.Configuration) ?? new Dictionary<string, string>(),
