@@ -23,6 +23,9 @@ public static class ServiceCollectionExtensions
         services.Configure<CacheOptions>(cacheSection);
         services.AddMemoryCache();
 
+        // Read configuration at startup time to determine if invalidation notification is enabled
+        // Note: This is a startup-time decision; changes to EnableInvalidationNotification
+        // require an application restart to take effect
         var options = cacheSection.Get<CacheOptions>() ?? new CacheOptions();
 
         // Register cache invalidation services if enabled

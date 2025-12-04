@@ -99,7 +99,13 @@ public class CacheInvalidationSubscriber : BackgroundService
                 return;
             }
 
-            var invalidationMessage = JsonHelper.Deserialize<CacheInvalidationMessage>(message!);
+            var json = (string?)message;
+            if (string.IsNullOrEmpty(json))
+            {
+                return;
+            }
+
+            var invalidationMessage = JsonHelper.Deserialize<CacheInvalidationMessage>(json);
             if (invalidationMessage == null)
             {
                 return;
@@ -164,9 +170,11 @@ public class CacheInvalidationSubscriber : BackgroundService
                 {
                     if (message.Type == CacheInvalidationType.Pattern && !string.IsNullOrEmpty(message.Pattern))
                     {
-                        // Pattern invalidation - log it but we can't efficiently clear by pattern in MemoryCache
-                        _logger.LogDebug(
-                            "Received pattern invalidation for pattern '{Pattern}', but MemoryCache doesn't support pattern removal",
+                        // Pattern invalidation - MemoryCache doesn't support pattern-based removal
+                        // This is a known limitation; users should use key-based invalidation instead
+                        _logger.LogWarning(
+                            "Received pattern invalidation for pattern '{Pattern}', but MemoryCache doesn't support pattern removal. " +
+                            "Consider using explicit key-based invalidation instead.",
                             message.Pattern);
                         continue;
                     }
