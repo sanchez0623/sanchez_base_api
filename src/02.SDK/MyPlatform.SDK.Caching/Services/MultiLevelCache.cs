@@ -2,6 +2,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using MyPlatform.Infrastructure.Redis.Services;
 using MyPlatform.SDK.Caching.Configuration;
+using MyPlatform.SDK.Caching.Invalidation;
 
 namespace MyPlatform.SDK.Caching.Services;
 
@@ -60,15 +61,25 @@ public class MultiLevelCache : IMultiLevelCache
     private readonly IMemoryCache _memoryCache;
     private readonly IRedisCacheService _redisCache;
     private readonly CacheOptions _options;
+    private readonly ICacheInvalidationNotifier? _invalidationNotifier;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MultiLevelCache"/> class.
+    /// </summary>
+    /// <param name="memoryCache">The memory cache.</param>
+    /// <param name="redisCache">The Redis cache service.</param>
+    /// <param name="options">The cache options.</param>
+    /// <param name="invalidationNotifier">The optional cache invalidation notifier.</param>
     public MultiLevelCache(
         IMemoryCache memoryCache,
         IRedisCacheService redisCache,
-        IOptions<CacheOptions> options)
+        IOptions<CacheOptions> options,
+        ICacheInvalidationNotifier? invalidationNotifier = null)
     {
         _memoryCache = memoryCache;
         _redisCache = redisCache;
         _options = options.Value;
+        _invalidationNotifier = invalidationNotifier;
     }
 
     private string GetKey(string key) => $"{_options.KeyPrefix}{key}";
@@ -122,6 +133,12 @@ public class MultiLevelCache : IMultiLevelCache
         {
             await _redisCache.SetAsync(fullKey, value, distributedExpiry);
         }
+
+        // Publish invalidation notification to other instances
+        if (_invalidationNotifier != null)
+        {
+            await _invalidationNotifier.PublishInvalidationAsync(fullKey, CacheInvalidationType.Update);
+        }
     }
 
     /// <inheritdoc />
@@ -155,6 +172,12 @@ public class MultiLevelCache : IMultiLevelCache
         if (_options.EnableDistributedCache)
         {
             await _redisCache.RemoveAsync(fullKey);
+        }
+
+        // Publish invalidation notification to other instances
+        if (_invalidationNotifier != null)
+        {
+            await _invalidationNotifier.PublishInvalidationAsync(fullKey, CacheInvalidationType.Remove);
         }
     }
 
