@@ -1,0 +1,68 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sku-service-config
+  namespace: myplatform
+  labels:
+    app: sku-service
+    version: v1
+data:
+  appsettings.Production.json: |
+    {
+      "Logging": {
+        "LogLevel": {
+          "Default": "Information",
+          "Microsoft.AspNetCore": "Warning",
+          "Microsoft.EntityFrameworkCore": "Warning"
+        }
+      },
+      "AllowedHosts": "*",
+      "Database": {
+        "ReadWriteSplit": {
+          "Enabled": true,
+          "LoadBalanceStrategy": "WeightedRoundRobin",
+          "ReadFromMasterInTransaction": true
+        },
+        "Sharding": {
+          "Enabled": true,
+          "DefaultDataSource": "master",
+          "DefaultLookBackMonths": 12,
+          "Tables": {
+            "ProductSku": {
+              "ShardingColumn": "Id",
+              "ShardingType": "ByMod",
+              "ShardCount": 4,
+              "TableNameFormat": "product_skus_{0}"
+            },
+            "SkuStock": {
+              "ShardingColumn": "SkuId",
+              "ShardingType": "ByMod",
+              "ShardCount": 4,
+              "TableNameFormat": "sku_stocks_{0}"
+            },
+            "SkuPriceHistory": {
+              "ShardingColumn": "CreatedAt",
+              "ShardingType": "ByMonth",
+              "TableNameFormat": "sku_price_histories_{0:yyyyMM}"
+            }
+          }
+        }
+      },
+      "Observability": {
+        "ServiceName": "MyPlatform.Services.Sku",
+        "ServiceVersion": "1.0.0",
+        "Logging": {
+          "MinimumLevel": "Information",
+          "WriteToConsole": true
+        },
+        "Tracing": {
+          "Enabled": true,
+          "TraceAspNetCore": true,
+          "TraceHttpClient": true
+        },
+        "Metrics": {
+          "Enabled": true,
+          "ExposePrometheus": true
+        }
+      }
+    }
