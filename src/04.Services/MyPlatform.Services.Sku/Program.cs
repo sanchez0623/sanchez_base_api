@@ -8,6 +8,7 @@ using MyPlatform.SDK.Observability.Extensions;
 using MyPlatform.Services.Sku.Application.Services;
 using MyPlatform.Services.Sku.Domain.Entities;
 using MyPlatform.Services.Sku.Infrastructure.Data;
+using MyPlatform.Services.Sku.Infrastructure.MultiTenancy;
 using MyPlatform.Services.Sku.Infrastructure.Repositories;
 using MyPlatform.Services.Sku.Infrastructure.Sharding;
 
@@ -16,8 +17,27 @@ var builder = WebApplication.CreateBuilder(args);
 // 基础服务
 builder.Services.AddPlatformAuthentication(builder.Configuration);
 builder.Services.AddPlatformAuthorization();
-builder.Services.AddPlatformMultiTenancy();
 builder.Services.AddPlatformObservability(builder.Configuration);
+
+// =============================================================================
+// 多租户配置示例
+// =============================================================================
+// 选项 1：使用配置文件存储租户信息（仅用于开发/测试环境）
+// 默认行为，在 appsettings.json 中配置 MultiTenancy:Tenants
+builder.Services.AddPlatformMultiTenancy(builder.Configuration);
+
+// 选项 2：使用 MySQL 数据库存储租户信息（生产环境推荐）
+// 取消注释以下代码以启用数据库存储：
+//
+// var tenantConnectionString = builder.Configuration["MultiTenancy:TenantManagementConnectionString"];
+// if (!string.IsNullOrEmpty(tenantConnectionString))
+// {
+//     builder.Services.AddDbContext<TenantManagementDbContext>(options =>
+//         options.UseMySql(tenantConnectionString, ServerVersion.AutoDetect(tenantConnectionString)));
+//     
+//     builder.Services.AddTenantStore<MySqlTenantStore>();
+// }
+// =============================================================================
 
 // 数据库配置（读写分离 + 分库分表）
 builder.Services.AddPlatformEfCore<SkuDbContext>((sp, options) =>

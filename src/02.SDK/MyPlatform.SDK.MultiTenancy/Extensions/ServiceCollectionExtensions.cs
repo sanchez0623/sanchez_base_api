@@ -42,6 +42,20 @@ public static class ServiceCollectionExtensions
     /// <param name="services">The service collection.</param>
     /// <param name="configuration">The configuration.</param>
     /// <returns>The service collection for chaining.</returns>
+    /// <remarks>
+    /// By default, this method registers either ConfigurationTenantStore or InMemoryTenantStore
+    /// based on the TenantStore configuration value. These implementations are intended for
+    /// development and testing environments.
+    /// 
+    /// For production environments, implement a custom ITenantStore that loads tenant information
+    /// from a database and register it using <see cref="AddTenantStore{TStore}"/>.
+    /// 
+    /// Example:
+    /// <code>
+    /// services.AddPlatformMultiTenancy(configuration)
+    ///         .AddTenantStore&lt;MySqlTenantStore&gt;();
+    /// </code>
+    /// </remarks>
     public static IServiceCollection AddPlatformMultiTenancy(this IServiceCollection services, IConfiguration configuration)
     {
         // Configure options
@@ -57,15 +71,18 @@ public static class ServiceCollectionExtensions
         var options = new MultiTenancyOptions();
         configuration.GetSection(MultiTenancyOptions.SectionName).Bind(options);
 
-        // Register tenant store based on configuration
+        // Register tenant store based on configuration (built-in implementations only)
         switch (options.TenantStore?.ToLowerInvariant())
         {
             case "inmemory":
-                services.AddTenantStore<InMemoryTenantStore>();
+                // InMemory store for testing purposes
+                services.TryAddScoped<ITenantStore, InMemoryTenantStore>();
                 break;
             case "configuration":
             default:
-                services.AddTenantStore<ConfigurationTenantStore>();
+                // Configuration store for development purposes
+                // For production, use AddTenantStore<TStore>() to register a database-backed implementation
+                services.TryAddScoped<ITenantStore, ConfigurationTenantStore>();
                 break;
         }
 
@@ -95,15 +112,37 @@ public static class ServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Adds a custom tenant store.
+    /// Registers a custom tenant store implementation.
     /// </summary>
-    /// <typeparam name="TStore">The type of tenant store.</typeparam>
+    /// <typeparam name="TStore">The type of tenant store implementation.</typeparam>
     /// <param name="services">The service collection.</param>
     /// <returns>The service collection for chaining.</returns>
+    /// <remarks>
+    /// Use this method to register a custom ITenantStore implementation for production environments.
+    /// This replaces any previously registered ITenantStore (e.g., ConfigurationTenantStore).
+    /// 
+    /// Example usage:
+    /// <code>
+    /// // Register your database context for tenant management
+    /// services.AddDbContext&lt;TenantManagementDbContext&gt;(options => 
+    ///     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+    /// 
+    /// // Register multi-tenancy with custom store
+    /// services.AddPlatformMultiTenancy(configuration)
+    ///         .AddTenantStore&lt;MySqlTenantStore&gt;();
+    /// </code>
+    /// </remarks>
     public static IServiceCollection AddTenantStore<TStore>(this IServiceCollection services)
         where TStore : class, ITenantStore
     {
-        services.TryAddScoped<ITenantStore, TStore>();
+        // Remove any previously registered ITenantStore
+        var descriptor = services.FirstOrDefault(d => d.ServiceType == typeof(ITenantStore));
+        if (descriptor != null)
+        {
+            services.Remove(descriptor);
+        }
+
+        services.AddScoped<ITenantStore, TStore>();
         return services;
     }
 

@@ -8,6 +8,12 @@ namespace MyPlatform.SDK.MultiTenancy.Store;
 /// Configuration-based implementation of tenant store.
 /// Loads tenant information from appsettings.json.
 /// </summary>
+/// <remarks>
+/// This implementation is intended for development and testing environments only.
+/// For production environments, implement a custom ITenantStore that loads tenant
+/// information from a database (e.g., MySqlTenantStore) and register it using
+/// <see cref="Extensions.ServiceCollectionExtensions.AddTenantStore{TStore}"/>.
+/// </remarks>
 public class ConfigurationTenantStore : ITenantStore
 {
     private readonly IOptionsMonitor<MultiTenancyOptions> _options;
@@ -39,18 +45,20 @@ public class ConfigurationTenantStore : ITenantStore
     /// <inheritdoc />
     /// <remarks>
     /// This operation is not supported by ConfigurationTenantStore as configuration is read-only.
+    /// For production use cases requiring tenant management, implement a custom ITenantStore.
     /// </remarks>
     public Task SaveTenantAsync(TenantInfo tenant, CancellationToken cancellationToken = default)
     {
-        throw new NotSupportedException("ConfigurationTenantStore does not support saving tenants. Use a different store implementation.");
+        throw new NotSupportedException("ConfigurationTenantStore does not support saving tenants. Use a database-backed ITenantStore implementation for production environments.");
     }
 
     /// <inheritdoc />
     /// <remarks>
     /// This operation is not supported by ConfigurationTenantStore as configuration is read-only.
+    /// For production use cases requiring tenant management, implement a custom ITenantStore.
     /// </remarks>
     public Task DeleteTenantAsync(string tenantId, CancellationToken cancellationToken = default)
     {
-        throw new NotSupportedException("ConfigurationTenantStore does not support deleting tenants. Use a different store implementation.");
+        throw new NotSupportedException("ConfigurationTenantStore does not support deleting tenants. Use a database-backed ITenantStore implementation for production environments.");
     }
 }
