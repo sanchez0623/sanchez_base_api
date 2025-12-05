@@ -69,6 +69,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyPlatform.Services.Worker"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyPlatform.Services.Sku", "src\04.Services\MyPlatform.Services.Sku\MyPlatform.Services.Sku.csproj", "{FD9DBB46-D1CF-417C-88FD-B7641C3A0695}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyPlatform.SDK.Storage", "src\02.SDK\MyPlatform.SDK.Storage\MyPlatform.SDK.Storage.csproj", "{1794E019-A9BB-40ED-8148-408C177B7F6E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -391,6 +393,18 @@ Global
 		{FD9DBB46-D1CF-417C-88FD-B7641C3A0695}.Release|x64.Build.0 = Release|Any CPU
 		{FD9DBB46-D1CF-417C-88FD-B7641C3A0695}.Release|x86.ActiveCfg = Release|Any CPU
 		{FD9DBB46-D1CF-417C-88FD-B7641C3A0695}.Release|x86.Build.0 = Release|Any CPU
+		{1794E019-A9BB-40ED-8148-408C177B7F6E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1794E019-A9BB-40ED-8148-408C177B7F6E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1794E019-A9BB-40ED-8148-408C177B7F6E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1794E019-A9BB-40ED-8148-408C177B7F6E}.Debug|x64.Build.0 = Debug|Any CPU
+		{1794E019-A9BB-40ED-8148-408C177B7F6E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{1794E019-A9BB-40ED-8148-408C177B7F6E}.Debug|x86.Build.0 = Debug|Any CPU
+		{1794E019-A9BB-40ED-8148-408C177B7F6E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1794E019-A9BB-40ED-8148-408C177B7F6E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1794E019-A9BB-40ED-8148-408C177B7F6E}.Release|x64.ActiveCfg = Release|Any CPU
+		{1794E019-A9BB-40ED-8148-408C177B7F6E}.Release|x64.Build.0 = Release|Any CPU
+		{1794E019-A9BB-40ED-8148-408C177B7F6E}.Release|x86.ActiveCfg = Release|Any CPU
+		{1794E019-A9BB-40ED-8148-408C177B7F6E}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -427,5 +441,6 @@ Global
 		{A67D8F60-84CB-4EC7-8925-8B3D21D08FF2} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{84FA943E-7530-4917-85EA-D980D5BA95DE} = {358FB479-815E-C133-975E-C093EB5107D0}
 		{FD9DBB46-D1CF-417C-88FD-B7641C3A0695} = {358FB479-815E-C133-975E-C093EB5107D0}
+		{1794E019-A9BB-40ED-8148-408C177B7F6E} = {03B32C4A-F3DB-4975-F6F8-65D1ADA49A91}
 	EndGlobalSection
 EndGlobal
