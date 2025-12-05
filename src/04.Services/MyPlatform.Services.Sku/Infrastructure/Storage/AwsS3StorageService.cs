@@ -12,6 +12,11 @@ namespace MyPlatform.Services.Sku.Infrastructure.Storage;
 /// <summary>
 /// AWS S3 存储服务实现
 /// </summary>
+/// <remarks>
+/// 注意：此实现使用配置中的 AccessKeyId 和 SecretAccessKey 进行认证。
+/// 在生产环境中，建议使用 IAM 角色、环境变量或 AWS 凭证提供程序链。
+/// 可以通过注入 IAmazonS3 客户端替换默认构造的客户端，以支持其他认证方式。
+/// </remarks>
 public class AwsS3StorageService : IStorageService
 {
     private readonly IAmazonS3 _client;
@@ -24,6 +29,12 @@ public class AwsS3StorageService : IStorageService
     /// <summary>
     /// 初始化 AWS S3 存储服务
     /// </summary>
+    /// <param name="options">AWS S3 配置选项</param>
+    /// <param name="logger">日志记录器</param>
+    /// <remarks>
+    /// 如果需要使用 IAM 角色或其他 AWS 凭证提供程序，可以创建一个重载构造函数
+    /// 接受 IAmazonS3 客户端，或修改此构造函数以支持空凭证（使用默认凭证链）。
+    /// </remarks>
     public AwsS3StorageService(
         IOptions<AwsS3Options> options,
         ILogger<AwsS3StorageService> logger)
@@ -37,7 +48,15 @@ public class AwsS3StorageService : IStorageService
             UseAccelerateEndpoint = _options.UseAccelerateEndpoint
         };
 
-        _client = new AmazonS3Client(_options.AccessKeyId, _options.SecretAccessKey, config);
+        // 如果没有提供凭证，使用 AWS 默认凭证链（包括 IAM 角色、环境变量等）
+        if (string.IsNullOrEmpty(_options.AccessKeyId) || string.IsNullOrEmpty(_options.SecretAccessKey))
+        {
+            _client = new AmazonS3Client(config);
+        }
+        else
+        {
+            _client = new AmazonS3Client(_options.AccessKeyId, _options.SecretAccessKey, config);
+        }
     }
 
     /// <inheritdoc />
@@ -47,7 +66,7 @@ public class AwsS3StorageService : IStorageService
         UploadOptions? options = null,
         CancellationToken cancellationToken = default)
     {
-        var key = GenerateKey(fileName, options);
+        var key = StorageUtilities.GenerateKey(fileName, options);
 
         try
         {
@@ -56,7 +75,7 @@ public class AwsS3StorageService : IStorageService
                 BucketName = _options.BucketName,
                 Key = key,
                 InputStream = stream,
-                ContentType = options?.ContentType ?? GetContentType(fileName)
+                ContentType = options?.ContentType ?? StorageUtilities.GetContentType(fileName)
             };
 
             if (options?.IsPublic == true)
@@ -394,16 +413,6 @@ public class AwsS3StorageService : IStorageService
         }
     }
 
-    private string GenerateKey(string fileName, UploadOptions? options)
-    {
-        var actualFileName = options?.CustomFileName ?? fileName;
-        var key = string.IsNullOrEmpty(options?.Folder)
-            ? actualFileName
-            : $"{options.Folder.TrimEnd('/')}/{actualFileName}";
-
-        return key;
-    }
-
     private string GetPublicUrl(string key)
     {
         if (!string.IsNullOrEmpty(_options.CdnDomain))
@@ -411,28 +420,5 @@ public class AwsS3StorageService : IStorageService
             return $"https://{_options.CdnDomain}/{key}";
         }
         return $"https://{_options.BucketName}.s3.{_options.Region}.amazonaws.com/{key}";
-    }
-
-    private static string GetContentType(string fileName)
-    {
-        var extension = Path.GetExtension(fileName).ToLowerInvariant();
-        return extension switch
-        {
-            ".jpg" or ".jpeg" => "image/jpeg",
-            ".png" => "image/png",
-            ".gif" => "image/gif",
-            ".webp" => "image/webp",
-            ".pdf" => "application/pdf",
-            ".doc" => "application/msword",
-            ".docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            ".xls" => "application/vnd.ms-excel",
-            ".xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            ".csv" => "text/csv",
-            ".txt" => "text/plain",
-            ".json" => "application/json",
-            ".xml" => "application/xml",
-            ".zip" => "application/zip",
-            _ => "application/octet-stream"
-        };
     }
 }

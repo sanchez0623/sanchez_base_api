@@ -39,7 +39,7 @@ public class AliyunOssStorageService : IStorageService
         UploadOptions? options = null,
         CancellationToken cancellationToken = default)
     {
-        var key = GenerateKey(fileName, options);
+        var key = StorageUtilities.GenerateKey(fileName, options);
 
         try
         {
@@ -50,7 +50,7 @@ public class AliyunOssStorageService : IStorageService
             }
             else
             {
-                metadata.ContentType = GetContentType(fileName);
+                metadata.ContentType = StorageUtilities.GetContentType(fileName);
             }
 
             if (options?.Metadata != null)
@@ -341,16 +341,6 @@ public class AliyunOssStorageService : IStorageService
         }
     }
 
-    private string GenerateKey(string fileName, UploadOptions? options)
-    {
-        var actualFileName = options?.CustomFileName ?? fileName;
-        var key = string.IsNullOrEmpty(options?.Folder)
-            ? actualFileName
-            : $"{options.Folder.TrimEnd('/')}/{actualFileName}";
-
-        return key;
-    }
-
     private string GetPublicUrl(string key)
     {
         var protocol = _options.UseHttps ? "https" : "http";
@@ -359,28 +349,5 @@ public class AliyunOssStorageService : IStorageService
             return $"{protocol}://{_options.CdnDomain}/{key}";
         }
         return $"{protocol}://{_options.BucketName}.{_options.Endpoint}/{key}";
-    }
-
-    private static string GetContentType(string fileName)
-    {
-        var extension = Path.GetExtension(fileName).ToLowerInvariant();
-        return extension switch
-        {
-            ".jpg" or ".jpeg" => "image/jpeg",
-            ".png" => "image/png",
-            ".gif" => "image/gif",
-            ".webp" => "image/webp",
-            ".pdf" => "application/pdf",
-            ".doc" => "application/msword",
-            ".docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            ".xls" => "application/vnd.ms-excel",
-            ".xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            ".csv" => "text/csv",
-            ".txt" => "text/plain",
-            ".json" => "application/json",
-            ".xml" => "application/xml",
-            ".zip" => "application/zip",
-            _ => "application/octet-stream"
-        };
     }
 }
