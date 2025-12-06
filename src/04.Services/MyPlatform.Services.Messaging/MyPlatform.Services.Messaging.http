@@ -1,0 +1,76 @@
+@host = http://localhost:5168
+
+# =============================================================================
+# 1. 生成测试 Token (获取 Access Token)
+# =============================================================================
+# NOTE: You MUST execute this request first to generate the token for subsequent requests
+# @name login
+POST {{host}}/api/dev/token
+Content-Type: application/json
+
+{
+  "userId": "user_1001",
+  "userName": "Alice",
+  "tenantId": "tenant-A",
+  "roles": ["admin", "user"]
+}
+
+###
+@token = {{login.response.body.accessToken}}
+
+
+### ================================================================
+### 2. 发布订单创建事件 (使用生成的 Token)
+### ================================================================
+POST {{host}}/api/events/order-created
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "orderId": 2024001,
+  "customerId": "cust_001",
+  "totalAmount": 1299.00,
+  "items": [
+    {
+      "skuCode": "SKU-NB-001",
+      "quantity": 1,
+      "unitPrice": 1299.00
+    }
+  ]
+}
+
+### ================================================================
+### 3. 发布库存变更事件 (模拟另一个租户 tenant-B)
+### ================================================================
+
+# 先获取 tenant-B 的 token
+# @name loginTenantB
+POST {{host}}/api/dev/token
+Content-Type: application/json
+
+{
+  "userId": "user_2001",
+  "userName": "Bob",
+  "tenantId": "tenant-B",
+  "roles": ["user"]
+}
+
+###
+@tokenB = {{loginTenantB.response.body.accessToken}}
+
+# 发布事件
+POST {{host}}/api/events/inventory-changed
+Content-Type: application/json
+Authorization: Bearer {{tokenB}}
+
+{
+  "skuCode": "SKU-NB-001",
+  "quantityChange": -5,
+  "changeType": "OUT",
+  "reason": "Bulk order"
+}
+
+### ================================================================
+### 健康检查 (无需Token)
+### ================================================================
+GET {{host}}/health

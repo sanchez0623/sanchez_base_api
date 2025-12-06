@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: messaging-deployment
+  labels:
+    app: messaging
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: messaging
+  template:
+    metadata:
+      labels:
+        app: messaging
+    spec:
+      containers:
+        - name: messaging
+          image: myplatform-messaging:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: "Development"
+            - name: ConnectionStrings__DefaultConnection
+              value: "Server=mysql-service;Port=3306;Database=myplatform_messaging;User=root;Password=yourpassword;"
+            - name: RabbitMQ__HostName
+              value: "rabbitmq-service"
+            - name: RabbitMQ__UserName
+              value: "guest"
+            - name: RabbitMQ__Password
+              value: "guest"
