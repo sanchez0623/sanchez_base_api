@@ -7,16 +7,27 @@ services:
     ports:
       - "5168:8080"
     environment:
-      - ConnectionStrings__DefaultConnection=Server=mysql;Port=3306;Database=myplatform_messaging;User=root;Password=root;
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=mysql;Port=3306;Database=myplatform_messaging;User=root;Password=root;AllowPublicKeyRetrieval=True;
       - RabbitMQ__HostName=rabbitmq
+      - RabbitMQ__Port=5672
       - RabbitMQ__UserName=guest
       - RabbitMQ__Password=guest
-      - ASPNETCORE_ENVIRONMENT=Development
+      - RabbitMQ__ExchangeName=myplatform.events
+      - RabbitMQ__QueueName=myplatform.messaging.events
+      - Jwt__SecretKey=your-jwt-secret-key-at-least-32-characters-long
     depends_on:
       mysql:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   mysql:
     image: mysql:8.0
@@ -28,15 +39,20 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       timeout: 20s
       retries: 10
 
   rabbitmq:
     image: rabbitmq:3-management
     ports:
-      - "5673:5672"
-      - "15673:15672"
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 30s
@@ -45,3 +61,4 @@ services:
 
 volumes:
   mysql_data:
+  rabbitmq_data:

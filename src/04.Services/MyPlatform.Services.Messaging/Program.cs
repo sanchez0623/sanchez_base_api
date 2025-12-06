@@ -6,7 +6,9 @@ using MyPlatform.SDK.EventBus.Extensions;
 using MyPlatform.SDK.MultiTenancy.Extensions;
 using MyPlatform.SDK.Observability.Extensions;
 using MyPlatform.Services.Messaging.Application.Services;
+using MyPlatform.Services.Messaging.Domain.Events;
 using MyPlatform.Services.Messaging.Infrastructure;
+using MyPlatform.Services.Messaging.Infrastructure.Consumers;
 using MyPlatform.Services.Messaging.Infrastructure.Data;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -30,9 +32,18 @@ builder.Services.AddDbContext<MessagingDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
 // =============================================================================
-// 消息队列（RabbitMQ/Kafka）
+// 消息队列（RabbitMQ）- 发布者
 // =============================================================================
 builder.Services.AddPlatformEventBus(builder.Configuration);
+
+// =============================================================================
+// 消息队列（RabbitMQ）- 订阅者/消费者
+// =============================================================================
+builder.Services.AddPlatformEventBusSubscriber(builder.Configuration)
+    .AddEventHandler<OrderCreatedEvent, OrderCreatedEventHandler>()
+    .AddEventHandler<InventoryChangedEvent, InventoryChangedEventHandler>()
+    .AddEventHandler<LogisticsStatusEvent, LogisticsStatusEventHandler>()
+    .Build();
 
 // =============================================================================
 // 应用服务

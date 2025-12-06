@@ -51,6 +51,11 @@ public class RabbitMqOptions
     public string QueueNamePrefix { get; set; } = "myplatform";
 
     /// <summary>
+    /// Gets or sets the specific queue name. If null, a name will be auto-generated.
+    /// </summary>
+    public string? QueueName { get; set; }
+
+    /// <summary>
     /// Gets or sets a value indicating whether to use durable exchanges and queues.
     /// </summary>
     public bool Durable { get; set; } = true;
