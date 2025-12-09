@@ -1,25 +1,25 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MyPlatform.SDK.EventBus.Abstractions;
-using MyPlatform.Services.Messaging.Domain.Entities;
+using MyPlatform.SDK.Idempotency.Services;
 using MyPlatform.Services.Messaging.Domain.Events;
-using MyPlatform.Services.Messaging.Infrastructure.Data;
 
 namespace MyPlatform.Services.Messaging.Infrastructure.Consumers;
 
 /// <summary>
 /// 库存变更事件处理器
+/// 使用 Redis 实现高性能幂等性检查，支持 10W+ QPS
 /// </summary>
 public class InventoryChangedEventHandler : IIntegrationEventHandler<InventoryChangedEvent>
 {
-    private readonly MessagingDbContext _dbContext;
+    private readonly IEventIdempotencyChecker _idempotencyChecker;
     private readonly ILogger<InventoryChangedEventHandler> _logger;
+    private const string ConsumerGroup = nameof(InventoryChangedEventHandler);
 
     public InventoryChangedEventHandler(
-        MessagingDbContext dbContext,
+        IEventIdempotencyChecker idempotencyChecker,
         ILogger<InventoryChangedEventHandler> logger)
     {
-        _dbContext = dbContext;
+        _idempotencyChecker = idempotencyChecker;
         _logger = logger;
     }
 
@@ -29,18 +29,18 @@ public class InventoryChangedEventHandler : IIntegrationEventHandler<InventoryCh
             "Processing InventoryChangedEvent: SkuCode={SkuCode}, ChangeType={ChangeType}, Quantity={Quantity}",
             @event.SkuCode, @event.ChangeType, @event.QuantityChange);
 
-        // 幂等性检查
-        var existingRecord = await _dbContext.ConsumeRecords
-            .FirstOrDefaultAsync(r => 
-                r.EventId == @event.EventId.ToString() && 
-                r.ConsumerGroup == nameof(InventoryChangedEventHandler),
-                cancellationToken);
+        // Redis 幂等性检查：原子操作，高并发下不会重复
+        var acquired = await _idempotencyChecker.TryAcquireAsync(
+            @event.EventId.ToString(),
+            ConsumerGroup,
+            TimeSpan.FromDays(7),
+            cancellationToken);
 
-        if (existingRecord is not null)
+        if (!acquired)
         {
             _logger.LogWarning(
                 "Event {EventId} already processed by {ConsumerGroup}, skipping",
-                @event.EventId, nameof(InventoryChangedEventHandler));
+                @event.EventId, ConsumerGroup);
             return;
         }
 
@@ -59,17 +59,11 @@ public class InventoryChangedEventHandler : IIntegrationEventHandler<InventoryCh
             // 3. 更新缓存中的库存信息
             await UpdateInventoryCacheAsync(@event, cancellationToken);
 
-            // 记录消费成功
-            _dbContext.ConsumeRecords.Add(new MessageConsumeRecord
-            {
-                EventId = @event.EventId.ToString(),
-                EventType = @event.EventType,
-                ConsumerGroup = nameof(InventoryChangedEventHandler),
-                Status = "Processed",
-                ProcessedAt = DateTime.UtcNow
-            });
-
-            await _dbContext.SaveChangesAsync(cancellationToken);
+            // 标记处理完成
+            await _idempotencyChecker.MarkCompletedAsync(
+                @event.EventId.ToString(),
+                ConsumerGroup,
+                cancellationToken);
 
             _logger.LogInformation(
                 "Successfully processed InventoryChangedEvent: SkuCode={SkuCode}",
@@ -80,6 +74,13 @@ public class InventoryChangedEventHandler : IIntegrationEventHandler<InventoryCh
             _logger.LogError(ex,
                 "Failed to process InventoryChangedEvent: SkuCode={SkuCode}",
                 @event.SkuCode);
+
+            // 标记处理失败，允许重试
+            await _idempotencyChecker.MarkFailedAsync(
+                @event.EventId.ToString(),
+                ConsumerGroup,
+                cancellationToken);
+
             throw;
         }
     }
@@ -87,7 +88,6 @@ public class InventoryChangedEventHandler : IIntegrationEventHandler<InventoryCh
     private Task CheckInventoryAlertAsync(InventoryChangedEvent @event, CancellationToken cancellationToken)
     {
         // TODO: 实现库存预警检查逻辑
-        // 当库存低于阈值时发送预警通知
         _logger.LogDebug("Checking inventory alert for SkuCode={SkuCode}", @event.SkuCode);
         return Task.CompletedTask;
     }

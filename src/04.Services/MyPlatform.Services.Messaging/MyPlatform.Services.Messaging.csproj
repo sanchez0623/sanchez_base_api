@@ -13,9 +13,11 @@
     <ProjectReference Include="..\..\02.SDK\MyPlatform.SDK.Authentication\MyPlatform.SDK.Authentication.csproj" />
     <ProjectReference Include="..\..\02.SDK\MyPlatform.SDK.Authorization\MyPlatform.SDK.Authorization.csproj" />
     <ProjectReference Include="..\..\02.SDK\MyPlatform.SDK.EventBus\MyPlatform.SDK.EventBus.csproj" />
+    <ProjectReference Include="..\..\02.SDK\MyPlatform.SDK.Idempotency\MyPlatform.SDK.Idempotency.csproj" />
     <ProjectReference Include="..\..\02.SDK\MyPlatform.SDK.MultiTenancy\MyPlatform.SDK.MultiTenancy.csproj" />
     <ProjectReference Include="..\..\02.SDK\MyPlatform.SDK.Observability\MyPlatform.SDK.Observability.csproj" />
     <ProjectReference Include="..\..\03.Infrastructure\MyPlatform.Infrastructure.EFCore\MyPlatform.Infrastructure.EFCore.csproj" />
+    <ProjectReference Include="..\..\03.Infrastructure\MyPlatform.Infrastructure.Redis\MyPlatform.Infrastructure.Redis.csproj" />
   </ItemGroup>
 
   <ItemGroup>

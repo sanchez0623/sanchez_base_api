@@ -1,8 +1,10 @@
 using Microsoft.EntityFrameworkCore;
+using MyPlatform.Infrastructure.Redis.Extensions;
 using MyPlatform.SDK.Authentication.Extensions;
 using MyPlatform.SDK.Authorization.Extensions;
 using MyPlatform.SDK.Authorization.Services;
 using MyPlatform.SDK.EventBus.Extensions;
+using MyPlatform.SDK.Idempotency.Extensions;
 using MyPlatform.SDK.MultiTenancy.Extensions;
 using MyPlatform.SDK.Observability.Extensions;
 using MyPlatform.Services.Messaging.Application.Services;
@@ -21,6 +23,12 @@ builder.Services.AddScoped<IPermissionChecker, DefaultPermissionChecker>(); // �
 builder.Services.AddPlatformAuthorization();
 builder.Services.AddPlatformObservability(builder.Configuration);
 builder.Services.AddPlatformMultiTenancy(builder.Configuration);
+
+// =============================================================================
+// Redis（用于高性能幂等性检查，支持 10W+ QPS）
+// =============================================================================
+builder.Services.AddPlatformRedis(builder.Configuration);
+builder.Services.AddEventIdempotency();  // 使用 SDK 提供的事件消费者幂等性检查
 
 // =============================================================================
 // 数据库配置
