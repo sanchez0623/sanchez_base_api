@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>海外艺术史题库自测 MVP</title>
+    <style>
+        :root {
+            color-scheme: light;
+            --bg: #f7f4ef;
+            --card: #ffffff;
+            --text: #1f2937;
+            --muted: #6b7280;
+            --primary: #7c3aed;
+            --secondary: #f59e0b;
+            --border: #e5e7eb;
+            --success: #065f46;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: linear-gradient(180deg, #f9fafb 0%, var(--bg) 100%);
+            color: var(--text);
+        }
+
+        .container {
+            max-width: 1080px;
+            margin: 0 auto;
+            padding: 32px 20px 48px;
+        }
+
+        .hero {
+            background: radial-gradient(circle at top left, rgba(124, 58, 237, 0.15), transparent 35%), var(--card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 28px;
+            box-shadow: 0 16px 40px rgba(15, 23, 42, 0.06);
+        }
+
+        .hero h1 {
+            margin: 0 0 12px;
+            font-size: 32px;
+        }
+
+        .hero p {
+            margin: 8px 0;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        button {
+            border: none;
+            border-radius: 999px;
+            padding: 12px 18px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.15s ease, opacity 0.15s ease;
+        }
+
+        button:hover { transform: translateY(-1px); }
+        button:disabled { opacity: 0.6; cursor: progress; }
+        .primary { background: var(--primary); color: white; }
+        .secondary { background: #111827; color: white; }
+        .ghost { background: #ede9fe; color: #5b21b6; }
+
+        .grid {
+            margin-top: 24px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+        }
+
+        .metric, .question-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 18px;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+        }
+
+        .metric small, .pill, .meta {
+            color: var(--muted);
+        }
+
+        .metric strong {
+            display: block;
+            font-size: 28px;
+            margin-top: 10px;
+        }
+
+        .section-title {
+            margin: 32px 0 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: #f3f4f6;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .question-card h3 {
+            margin-top: 0;
+            margin-bottom: 12px;
+            font-size: 20px;
+        }
+
+        .options {
+            margin: 14px 0;
+            padding-left: 18px;
+            line-height: 1.7;
+        }
+
+        .answer {
+            margin-top: 16px;
+            padding: 14px;
+            border-radius: 16px;
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            color: var(--success);
+            display: none;
+        }
+
+        .answer.visible { display: block; }
+
+        .meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 12px;
+            font-size: 13px;
+        }
+
+        .footer-note {
+            margin-top: 24px;
+            color: var(--muted);
+            line-height: 1.7;
+            font-size: 14px;
+        }
+
+        .empty-state {
+            background: rgba(255, 255, 255, 0.75);
+            border: 1px dashed var(--border);
+            border-radius: 20px;
+            padding: 24px;
+            color: var(--muted);
+        }
+
+        .status {
+            margin-top: 16px;
+            min-height: 20px;
+            color: #4338ca;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <section class="hero">
+        <span class="pill">本地可直接运行 · 中文题库 · 附答案解析</span>
+        <h1 id="title">海外艺术史题库自测 MVP</h1>
+        <p id="disclaimer">正在加载题库说明...</p>
+        <p>你可以手动刷新题库、手动生成试卷，也可以让系统按配置定时自动拉取题库并自动出题。</p>
+        <div class="toolbar">
+            <button id="refreshBankButton" class="primary">手动拉取最新题库</button>
+            <button id="generateExamButton" class="secondary">立即生成一套试卷</button>
+            <button id="toggleAnswersButton" class="ghost">显示答案</button>
+        </div>
+        <div id="status" class="status"></div>
+    </section>
+
+    <section class="grid" id="metrics"></section>
+
+    <section>
+        <div class="section-title">
+            <h2>当前试卷</h2>
+            <span class="pill" id="examMeta">等待加载</span>
+        </div>
+        <div id="questions" class="questions"></div>
+    </section>
+
+    <p class="footer-note" id="footerNote"></p>
+</div>
+
+<script>
+    const state = {
+        showAnswers: false,
+        dashboard: null
+    };
+
+    const statusElement = document.getElementById('status');
+    const refreshBankButton = document.getElementById('refreshBankButton');
+    const generateExamButton = document.getElementById('generateExamButton');
+    const toggleAnswersButton = document.getElementById('toggleAnswersButton');
+
+    function setStatus(message) {
+        statusElement.textContent = message;
+    }
+
+    function formatDate(value) {
+        if (!value) {
+            return '暂无';
+        }
+
+        return new Date(value).toLocaleString('zh-CN', { hour12: false });
+    }
+
+    function renderMetrics(data) {
+        const metrics = [
+            { label: '题库题目数', value: data.totalQuestions, detail: data.bankName },
+            { label: '默认试卷题量', value: data.defaultQuestionCount, detail: '手动生成时可覆盖' },
+            { label: '自动出题间隔', value: `${data.autoGenerateIntervalMinutes} 分钟`, detail: '后台定时生成新试卷' },
+            { label: '自动刷新间隔', value: `${data.questionBankRefreshIntervalMinutes} 分钟`, detail: '后台定时拉取题库' }
+        ];
+
+        document.getElementById('metrics').innerHTML = metrics.map(metric => `
+            <article class="metric">
+                <small>${metric.label}</small>
+                <strong>${metric.value}</strong>
+                <div class="meta">${metric.detail}</div>
+            </article>
+        `).join('');
+    }
+
+    function renderQuestions(exam) {
+        const container = document.getElementById('questions');
+        const meta = document.getElementById('examMeta');
+
+        if (!exam || !exam.questions || exam.questions.length === 0) {
+            meta.textContent = '暂无试卷';
+            container.innerHTML = '<div class="empty-state">当前还没有试卷，请点击“立即生成一套试卷”，或等待后台定时出题。</div>';
+            return;
+        }
+
+        meta.textContent = `${exam.trigger === 'scheduled' ? '定时生成' : exam.trigger === 'startup' ? '启动预生成' : '手动生成'} · ${formatDate(exam.generatedAt)}`;
+        container.innerHTML = exam.questions.map((question, index) => {
+            const options = question.options && question.options.length > 0
+                ? `<ol class="options">${question.options.map(option => `<li>${option}</li>`).join('')}</ol>`
+                : '<div class="meta">本题为简答题，请先自行作答后再展开答案。</div>';
+
+            return `
+                <article class="question-card">
+                    <div class="meta">
+                        <span class="pill">第 ${index + 1} 题 · ${question.questionType}</span>
+                        <span>${question.referenceInstitution}</span>
+                        <span>${question.referenceProgram}</span>
+                    </div>
+                    <h3>${question.chinesePrompt}</h3>
+                    <p class="meta">原始英文考点提示：${question.originalPrompt || '未提供'}</p>
+                    ${options}
+                    <div class="answer ${state.showAnswers ? 'visible' : ''}">
+                        <strong>答案：</strong>${question.correctAnswer}<br />
+                        <strong>解析：</strong>${question.answerExplanation}<br />
+                        <strong>整理说明：</strong>${question.sourceNote}
+                    </div>
+                </article>
+            `;
+        }).join('');
+    }
+
+    function renderDashboard(data) {
+        state.dashboard = data;
+        document.getElementById('title').textContent = data.title;
+        document.getElementById('disclaimer').textContent = data.disclaimer;
+        document.getElementById('footerNote').textContent = `最近一次题库刷新：${formatDate(data.lastQuestionBankRefreshAt)}；题库源：${(data.appliedSources || []).join('、') || '仅本地种子题库'}。`;
+        toggleAnswersButton.textContent = state.showAnswers ? '隐藏答案' : '显示答案';
+        renderMetrics(data);
+        renderQuestions(data.currentExam);
+    }
+
+    async function loadDashboard() {
+        const response = await fetch('/api/dashboard');
+        if (!response.ok) {
+            throw new Error('加载仪表盘失败');
+        }
+
+        const data = await response.json();
+        renderDashboard(data);
+    }
+
+    async function withAction(button, workingText, action) {
+        const originalText = button.textContent;
+        button.disabled = true;
+        button.textContent = workingText;
+
+        try {
+            await action();
+        } finally {
+            button.disabled = false;
+            button.textContent = originalText;
+        }
+    }
+
+    refreshBankButton.addEventListener('click', async () => {
+        await withAction(refreshBankButton, '刷新中...', async () => {
+            setStatus('正在拉取题库...');
+            const response = await fetch('/api/question-bank/refresh', { method: 'POST' });
+            if (!response.ok) {
+                throw new Error('刷新题库失败');
+            }
+
+            await loadDashboard();
+            setStatus('题库已刷新。');
+        }).catch(error => setStatus(error.message));
+    });
+
+    generateExamButton.addEventListener('click', async () => {
+        await withAction(generateExamButton, '生成中...', async () => {
+            setStatus('正在生成试卷...');
+            const response = await fetch('/api/exams/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ questionCount: null })
+            });
+
+            if (!response.ok) {
+                throw new Error('生成试卷失败');
+            }
+
+            await loadDashboard();
+            setStatus('试卷已更新。');
+        }).catch(error => setStatus(error.message));
+    });
+
+    toggleAnswersButton.addEventListener('click', () => {
+        state.showAnswers = !state.showAnswers;
+        if (state.dashboard) {
+            renderDashboard(state.dashboard);
+        }
+    });
+
+    loadDashboard()
+        .then(() => setStatus('系统已就绪，可以开始自测。'))
+        .catch(error => setStatus(error.message));
+</script>
+</body>
+</html>

@@ -150,3 +150,29 @@ var results = await searchService.SearchAsync(query);
 ## 开源协议
 
 本项目基于 [Apache-2.0](LICENSE) 协议开源。
+
+
+## 艺术史题库 MVP（art_exam_sys 预览版）
+
+已新增一个可直接本地运行的最小 MVP 服务：`/src/04.Services/MyPlatform.Services.ArtExam`
+
+### 本地运行
+
+```bash
+dotnet run --project /home/runner/work/sanchez_base_api/sanchez_base_api/src/04.Services/MyPlatform.Services.ArtExam/MyPlatform.Services.ArtExam.csproj
+```
+
+启动后访问：
+- `http://localhost:5000` 或终端输出中的实际地址：查看中文题库自测页面
+- `http://localhost:5000/swagger`：查看手动刷新题库、手动生成试卷等 API
+
+### MVP 能力
+
+- 内置海外艺术院校公开课程方向整理的中文示例题库
+- 每道题都带有答案与解析
+- 支持手动刷新题库
+- 支持后台定时刷新题库
+- 支持手动生成试卷
+- 支持后台定时自动出题
+
+> 说明：为了避免直接复制受版权保护的原始试卷全文，当前题库以“公开课程方向 + 常见考点结构”整理为中文练习题，更适合先验证 MVP 产品形态与交互流程。
