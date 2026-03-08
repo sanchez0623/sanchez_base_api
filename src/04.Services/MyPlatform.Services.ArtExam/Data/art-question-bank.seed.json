@@ -1,0 +1,145 @@
+{
+  "bankName": "海外艺术史中文练习题库（MVP示例）",
+  "disclaimer": "本题库依据海外艺术院校公开课程方向与常见考点结构整理为中文练习题，附标准答案与解析，用于本地 MVP 演示，不直接复制受版权保护的原始试卷全文。",
+  "questions": [
+    {
+      "id": "courtauld-renaissance-perspective",
+      "referenceInstitution": "The Courtauld Institute of Art",
+      "referenceProgram": "History of Art",
+      "questionType": "单选题",
+      "chinesePrompt": "在线性透视法成熟之后，文艺复兴绘画最显著获得了哪一项能力？",
+      "originalPrompt": "What major representational capacity did linear perspective give Renaissance painting?",
+      "options": [
+        "A. 更准确地组织三维空间深度",
+        "B. 完全取消宗教叙事",
+        "C. 只允许使用蛋彩材料",
+        "D. 只描绘贵族肖像"
+      ],
+      "correctAnswer": "A. 更准确地组织三维空间深度",
+      "answerExplanation": "线性透视帮助艺术家在二维平面上构造具有一致消失点的三维空间，这是文艺复兴视觉革命的核心成果之一。",
+      "tags": ["文艺复兴", "透视", "西方艺术史"],
+      "sourceNote": "参考 The Courtauld Institute of Art 公共课程方向整理。"
+    },
+    {
+      "id": "oxford-baroque-counter-reformation",
+      "referenceInstitution": "University of Oxford",
+      "referenceProgram": "History of Art",
+      "questionType": "单选题",
+      "chinesePrompt": "巴洛克艺术在反宗教改革语境中经常被采用，主要因为它强调哪种传播效果？",
+      "originalPrompt": "Why was Baroque art effective in the Counter-Reformation context?",
+      "options": [
+        "A. 戏剧性、情感感染力与视觉说服力",
+        "B. 极端几何抽象",
+        "C. 拒绝公共空间展示",
+        "D. 只强调日常静物"
+      ],
+      "correctAnswer": "A. 戏剧性、情感感染力与视觉说服力",
+      "answerExplanation": "巴洛克艺术通过强烈明暗、动态构图和情感张力增强宗教传播效果，符合反宗教改革时期的视觉传播需求。",
+      "tags": ["巴洛克", "宗教艺术", "传播"],
+      "sourceNote": "参考 Oxford 历史艺术学科公开课程主题整理。"
+    },
+    {
+      "id": "nyu-ifa-impressionism-light",
+      "referenceInstitution": "NYU Institute of Fine Arts",
+      "referenceProgram": "Art History",
+      "questionType": "单选题",
+      "chinesePrompt": "印象派艺术家反复描绘同一对象在不同时刻的变化，核心是为了研究什么？",
+      "originalPrompt": "Why did Impressionists paint the same motif at different times of day?",
+      "options": [
+        "A. 光线与色彩在瞬时感知中的变化",
+        "B. 中世纪宗教仪式程序",
+        "C. 石雕结构稳定性",
+        "D. 油画保存化学反应"
+      ],
+      "correctAnswer": "A. 光线与色彩在瞬时感知中的变化",
+      "answerExplanation": "印象派重视瞬时视觉经验，连续描绘同一对象能够呈现自然光、空气与时间变化对色彩感知的影响。",
+      "tags": ["印象派", "色彩", "现代艺术"],
+      "sourceNote": "参考 NYU Institute of Fine Arts 公开课程方向整理。"
+    },
+    {
+      "id": "sothebys-provenance",
+      "referenceInstitution": "Sotheby's Institute of Art",
+      "referenceProgram": "Art Business",
+      "questionType": "单选题",
+      "chinesePrompt": "在艺术品交易与收藏管理中，作品 provenance（来源链）最关键的价值是什么？",
+      "originalPrompt": "Why is provenance critical in art market due diligence?",
+      "options": [
+        "A. 用于验证真伪、合法流转和历史归属",
+        "B. 只决定画框材质",
+        "C. 用于替代作品图像记录",
+        "D. 仅影响展览海报设计"
+      ],
+      "correctAnswer": "A. 用于验证真伪、合法流转和历史归属",
+      "answerExplanation": "来源链是艺术市场尽调的重要组成部分，能够帮助确认作品真伪、所有权流转和潜在法律风险。",
+      "tags": ["艺术市场", "作品来源", "收藏管理"],
+      "sourceNote": "参考 Sotheby's Institute of Art 公开课程方向整理。"
+    },
+    {
+      "id": "cambridge-cubism",
+      "referenceInstitution": "University of Cambridge",
+      "referenceProgram": "History of Art",
+      "questionType": "单选题",
+      "chinesePrompt": "立体主义对单一固定视点的突破，最直接体现在哪一方面？",
+      "originalPrompt": "How did Cubism challenge the single fixed viewpoint?",
+      "options": [
+        "A. 在同一画面中并置多个观察角度",
+        "B. 完全放弃画布媒介",
+        "C. 只画宗教圣像",
+        "D. 回到纯粹线性透视规则"
+      ],
+      "correctAnswer": "A. 在同一画面中并置多个观察角度",
+      "answerExplanation": "立体主义将对象拆解并重组，使观者在单一画面中感受到多重视角，这挑战了传统再现体系。",
+      "tags": ["立体主义", "现代主义", "观看方式"],
+      "sourceNote": "参考 Cambridge 艺术史公开教学主题整理。"
+    },
+    {
+      "id": "edinburgh-bauhaus",
+      "referenceInstitution": "The University of Edinburgh",
+      "referenceProgram": "History of Art",
+      "questionType": "简答题",
+      "chinesePrompt": "包豪斯（Bauhaus）在现代设计史上的核心主张是什么？请用一句话概括。",
+      "originalPrompt": "Summarize the Bauhaus principle in one sentence.",
+      "options": [],
+      "correctAnswer": "强调艺术、工艺与工业生产结合，让形式服务于功能与现代生活。",
+      "answerExplanation": "包豪斯并非单纯追求装饰，而是试图建立适用于现代社会的综合设计教育与生产体系。",
+      "tags": ["包豪斯", "设计史", "现代主义"],
+      "sourceNote": "参考 Edinburgh 艺术史课程公开方向整理。"
+    },
+    {
+      "id": "harvard-historiography",
+      "referenceInstitution": "Harvard University",
+      "referenceProgram": "History of Art and Architecture",
+      "questionType": "单选题",
+      "chinesePrompt": "在艺术史研究方法中，图像学（iconography/iconology）主要关注什么？",
+      "originalPrompt": "What does iconography/iconology primarily analyze?",
+      "options": [
+        "A. 图像主题、象征意义与文化语境",
+        "B. 颜料价格波动",
+        "C. 美术馆空调系统",
+        "D. 雕塑运输物流"
+      ],
+      "correctAnswer": "A. 图像主题、象征意义与文化语境",
+      "answerExplanation": "图像学不只识别题材，还进一步解释图像为何在特定文化语境中具有特定象征含义。",
+      "tags": ["研究方法", "图像学", "艺术史理论"],
+      "sourceNote": "参考 Harvard History of Art and Architecture 公开课程方向整理。"
+    },
+    {
+      "id": "standrews-global-art-history",
+      "referenceInstitution": "University of St Andrews",
+      "referenceProgram": "Art History",
+      "questionType": "单选题",
+      "chinesePrompt": "在“全球艺术史”视角下，最需要避免的研究误区是什么？",
+      "originalPrompt": "What should global art history avoid?",
+      "options": [
+        "A. 只用单一欧洲中心叙事解释所有地区艺术",
+        "B. 比较跨文化图像传播",
+        "C. 讨论殖民与贸易网络",
+        "D. 纳入非西方视觉传统"
+      ],
+      "correctAnswer": "A. 只用单一欧洲中心叙事解释所有地区艺术",
+      "answerExplanation": "全球艺术史强调跨区域联系、差异与权力结构，因此需要警惕单一中心叙事对复杂历史的遮蔽。",
+      "tags": ["全球艺术史", "后殖民", "研究视角"],
+      "sourceNote": "参考 St Andrews 艺术史公开课程方向整理。"
+    }
+  ]
+}

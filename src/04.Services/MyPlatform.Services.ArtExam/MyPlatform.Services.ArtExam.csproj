@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>MyPlatform.Services.ArtExam</RootNamespace>
+    <AssemblyName>MyPlatform.Services.ArtExam</AssemblyName>
+    <Description>艺术史自测 MVP 服务，提供中文题库、答案解析、手动/自动刷新和定时出题能力</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="$(SwashbuckleVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Data\art-question-bank.seed.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>
